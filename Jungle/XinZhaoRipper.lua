@@ -23,7 +23,7 @@ function XinZhao:LoadMenu()
 	-- Main Menu -------------------------------------------------------------------------------------------------------------------
   	self.Menu = MenuElement({type = MENU, id = "Menu", name = "The Ripper Series", leftIcon = Icons.C})
 	-- XinZhao ---------------------------------------------------------------------------------------------------------------------
-	self.Menu:MenuElement({type = MENU, id = "Ripper", name = "XinZhao The Ripper", leftIcon = Icons.C })
+	self.Menu:MenuElement({type = MENU, id = "Ripper", name = "Xin Zhao The Ripper", leftIcon = Icons.C })
 	-- Combo -----------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Combo", name = "Combo"})
   	self.Menu.Ripper.Combo:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
