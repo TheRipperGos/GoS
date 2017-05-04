@@ -16,12 +16,10 @@ end
 
 function Shyvana:LoadMenu()
   	local Icons = { C = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/f6/ShyvanaSquare.png",
-    				Q = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/7/7b/Twin_Bite.png",
-    				W = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/fb/Burnout.png",
-    				E = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/f2/Flame_Breath.png",
-                    		R = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/5/50/Dragon%27s_Descent.png"
-                  }
-  
+    			Q = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/7/7b/Twin_Bite.png",
+    			W = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/fb/Burnout.png",
+    			E = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/f2/Flame_Breath.png",
+                    	R = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/5/50/Dragon%27s_Descent.png" }
   --------- Menu Principal --------------------------------------------------------------
   	self.Menu = MenuElement({type = MENU, id = "Menu", name = "The Ripper Series", leftIcon = Icons.C})
   --------- Menu Combo ------------------------------------------------------------------
