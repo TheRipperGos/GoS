@@ -19,7 +19,7 @@ function Shyvana:LoadMenu()
     				Q = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/7/7b/Twin_Bite.png",
     				W = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/fb/Burnout.png",
     				E = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/f2/Flame_Breath.png",
-                    R = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/5/50/Dragon%27s_Descent.png"
+                    		R = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/5/50/Dragon%27s_Descent.png"
                   }
   
   --------- Menu Principal --------------------------------------------------------------
@@ -33,7 +33,7 @@ function Shyvana:LoadMenu()
   	self.Menu.Ripper.Combo:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
   	self.Menu.Ripper.Combo:MenuElement({id = "R", name = "Use R", value = true, leftIcon = Icons.R})
   	self.Menu.Ripper.Combo:MenuElement({id = "RHP", name = "Max enemy HP to R (%)", value = 65, min = 0, max = 100})
-    self.Menu.Ripper.Combo:MenuElement({id = "ER", name = "Min enemies to use R", value = 1, min = 1, max = 5})
+    	self.Menu.Ripper.Combo:MenuElement({id = "ER", name = "Min enemies to use R", value = 1, min = 1, max = 5})
   --------- Menu LastHit --------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "LastHit", name = "Last Hit"})
   	self.Menu.Ripper.LastHit:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
@@ -58,15 +58,15 @@ function Shyvana:LoadMenu()
   	self.Menu.Ripper.KS:MenuElement({id = "W", name = "Use W", value = true, leftIcon = Icons.W})
   	self.Menu.Ripper.KS:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
   	self.Menu.Ripper.KS:MenuElement({id = "R", name = "Use R", value = true, leftIcon = Icons.R})                     
-    self.Menu.Ripper.KS:MenuElement({id = "ER", name = "Min enemies to use R", value = 3, min = 1, max = 5})
+    	self.Menu.Ripper.KS:MenuElement({id = "ER", name = "Min enemies to use R", value = 3, min = 1, max = 5})
    --------- Menu Harass ---------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Harass", name = "Harass"})
   	self.Menu.Ripper.Harass:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
   --------- Menu Misc -----------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Misc", name = "Misc"})
-    self.Menu.Ripper.Misc:MenuElement({id = "SpeedW", name = "Use W for engage", value = false, leftIcon = Icons.W})
+    	self.Menu.Ripper.Misc:MenuElement({id = "SpeedW", name = "Use W for engage", value = false, leftIcon = Icons.W})
   	self.Menu.Ripper.Misc:MenuElement({id = "AutoR", name = "Auto R", value = false, leftIcon = Icons.R})
-    self.Menu.Ripper.Misc:MenuElement({id = "EAutoR", name = "Enemies to auto R", value = 4, min = 1, max = 5})
+    	self.Menu.Ripper.Misc:MenuElement({id = "EAutoR", name = "Enemies to auto R", value = 4, min = 1, max = 5})
   	self.Menu.Ripper.Misc:MenuElement({id = "Key", name = "Auto R Key", key = string.byte(" ")})
   --------- Menu Drawings --------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Drawings", name = "Drawings"})
@@ -84,19 +84,19 @@ function Shyvana:Tick()
   	local Flee = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE]) or (_G.GOS and _G.GOS:GetMode() == "Flee") or (_G.EOWLoaded and EOW:Mode() == "Flee")
   	if Combo then
     	self:Combo()
-    elseif LastHit then
+    	elseif LastHit then
     	self:LastHitQ()
     	self:LastHitE()
-    elseif Clear then
+    	elseif Clear then
     	self:LaneClear()
     	self:JungleClear()
-    elseif Harass then
+    	elseif Harass then
     	self:Harass()
-    elseif Flee then
+    	elseif Flee then
     	self:Flee()
-    elseif self.Menu.Ripper.Misc.Key:Value() then
+    	elseif self.Menu.Ripper.Misc.Key:Value() then
     	self:AutoR()
-    end
+    	end
   		self:KS()
 end
 
@@ -106,7 +106,7 @@ function Shyvana:GetValidEnemy(range)
     	if  enemy.team ~= myHero.team and enemy.valid and enemy.pos:DistanceTo(myHero.pos) < 1500 then
     		return true
     	end
-    end
+    	end
   	return false
 end
 
@@ -120,13 +120,13 @@ end
 
 function Shyvana:CountEnemys(range)
 	local heroesCount = 0
-    for i = 1,Game.HeroCount() do
+    	for i = 1,Game.HeroCount() do
         local enemy = Game.Hero(i)
         if  enemy.team ~= myHero.team and enemy.valid and enemy.pos:DistanceTo(myHero.pos) < 1200 then
             heroesCount = heroesCount + 1
         end
-    end
-    return heroesCount
+    	end
+    	return heroesCount
 end
 
 function Shyvana:Combo()
@@ -154,13 +154,13 @@ function Shyvana:Combo()
 end
 
 function Shyvana:GetValidMinion(range)
-    for i = 1,Game.MinionCount() do
+    	for i = 1,Game.MinionCount() do
         local minion = Game.Minion(i)
         if  minion.team ~= myHero.team and minion.valid and minion.pos:DistanceTo(myHero.pos) < E.range then
             return true
         end
-    end
-    return false
+    	end
+    	return false
 end
 
 function Shyvana:HpPred(unit, delay)
@@ -170,7 +170,7 @@ function Shyvana:HpPred(unit, delay)
 		hp = unit.health
 	end
 	return hp
-end
+	end
 
 function Shyvana:HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
@@ -180,7 +180,7 @@ function Shyvana:HasBuff(unit, buffname)
 		end
 	end
 	return false
-end
+	end
 
 function Shyvana:LastHitQ()
   	if self.Menu.Ripper.LastHit.Q:Value() == false then return end
@@ -197,7 +197,7 @@ function Shyvana:LastHitQ()
         		Control.SetCursorPos(minion.pos)
         	end
       	end
-    end
+    	end
 end  	
 
 function Shyvana:LastHitE()
@@ -213,7 +213,7 @@ function Shyvana:LastHitE()
         		Control.CastSpell(HK_E,minion.pos)
         	end
       	end
-    end
+    		end
 end  
     		
 function Shyvana:JungleClear()
@@ -234,7 +234,7 @@ function Shyvana:JungleClear()
 				break
 			end
       	end
-    end
+    	end
 end
 
 function Shyvana:LaneClear()
@@ -255,19 +255,19 @@ function Shyvana:LaneClear()
 				break
 			end
       	end
-    end
+    	end
 end
 
 function Shyvana:Flee()
   	if self.Menu.Ripper.Flee.W:Value() and self:Ready(_W) then
     	Control.CastSpell(HK_W)
-    end
+    	end
   	if self.Menu.Ripper.Flee.R:Value() and self:Ready(_R)
-    then
+    	then
     	if self:CountEnemys(600) >= self.Menu.Ripper.Flee.ER:Value() then
     	Control.CastSpell(HK_R)
     	end
-    end
+    	end
 end
   	
 function Shyvana:AutoR()
@@ -277,7 +277,7 @@ function Shyvana:AutoR()
     	if self:CountEnemys(1200) >= self.Menu.Ripper.Misc.EAutoR:Value() then
       		Control.CastSpell(HK_R)
       	end
-    end
+    	end
 end
 
 function Shyvana:Harass()
@@ -286,7 +286,7 @@ function Shyvana:Harass()
   	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(925, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(925,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
   	if self:IsValidTarget(target,825) and myHero.pos:DistanceTo(target.pos) < 825 and self.Menu.Ripper.Harass.E:Value() and self:Ready(_E) then
     	Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
-    end
+    	end
 end
 
 function Shyvana:KS()
@@ -299,21 +299,21 @@ function Shyvana:KS()
             if Wdamage >= self:HpPred(target,1) + target.hpRegen * 2 then
   				Control.CastSpell(HK_W)
     		end
-    	end
+    		end
   		if self:IsValidTarget(target,825) and myHero.pos:DistanceTo(target.pos) < 825 and self.Menu.Ripper.KS.E:Value() and self:Ready(_E) then
     		local level = myHero:GetSpellData(_E).level
     		local Edamage = CalcMagicalDamage(myHero, target, (({60, 100, 140, 180, 220})[level] + 0.3 * myHero.ap))
             if Edamage >= self:HpPred(target,1) + target.hpRegen * 2 then
   				Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
     		end
-    	end
+    		end
   		if self:IsValidTarget(target,800) and myHero.pos:DistanceTo(target.pos) < 800 and self.Menu.Ripper.KS.R:Value() and self:Ready(_R) then
     		local level = myHero:GetSpellData(_R).level
     		local Rdamage = CalcMagicalDamage(myHero, target, (({150, 250, 350})[level] + (0.7 * myHero.ap)))
             if self:CountEnemys(1200) >= self.Menu.Ripper.KS.ER:Value() and Rdamage >= self:HpPred(target,1) + target.hpRegen * 2 then
   				Control.CastSpell(HK_R,target:GetPrediction(R.speed,R.delay))
     		end
-    	end
+    		end
 end
 
 function Shyvana:Draw()
