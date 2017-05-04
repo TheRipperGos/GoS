@@ -20,11 +20,11 @@ function Shyvana:LoadMenu()
     			W = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/fb/Burnout.png",
     			E = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/f2/Flame_Breath.png",
                     	R = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/5/50/Dragon%27s_Descent.png" }
-  --------- Menu Principal --------------------------------------------------------------
+  --------- Main Menu --------------------------------------------------------------
   	self.Menu = MenuElement({type = MENU, id = "Menu", name = "The Ripper Series", leftIcon = Icons.C})
-  --------- Menu Combo ------------------------------------------------------------------
+  --------- Menu Shyvana ------------------------------------------------------------------
 	self.Menu:MenuElement({type = MENU, id = "Ripper", name = "Shyvana The Ripper", leftIcon = Icons.C })
-  --------- Menu Principal --------------------------------------------------------------
+  --------- Menu Main --------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Combo", name = "Combo"})
   	self.Menu.Ripper.Combo:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
   	self.Menu.Ripper.Combo:MenuElement({id = "W", name = "Use W", value = true, leftIcon = Icons.W})
