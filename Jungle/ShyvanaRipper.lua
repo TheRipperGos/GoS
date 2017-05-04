@@ -20,11 +20,11 @@ function Shyvana:LoadMenu()
     			W = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/fb/Burnout.png",
     			E = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/f/f2/Flame_Breath.png",
                     	R = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/5/50/Dragon%27s_Descent.png" }
-  --------- Main Menu --------------------------------------------------------------
+	-- Main Menu -------------------------------------------------------------------------------------------------------------------
   	self.Menu = MenuElement({type = MENU, id = "Menu", name = "The Ripper Series", leftIcon = Icons.C})
-  --------- Menu Shyvana ------------------------------------------------------------------
+	-- Shyvana ---------------------------------------------------------------------------------------------------------------------
 	self.Menu:MenuElement({type = MENU, id = "Ripper", name = "Shyvana The Ripper", leftIcon = Icons.C })
-  --------- Menu Main --------------------------------------------------------------
+	-- Combo -----------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Combo", name = "Combo"})
   	self.Menu.Ripper.Combo:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
   	self.Menu.Ripper.Combo:MenuElement({id = "W", name = "Use W", value = true, leftIcon = Icons.W})
@@ -32,41 +32,41 @@ function Shyvana:LoadMenu()
   	self.Menu.Ripper.Combo:MenuElement({id = "R", name = "Use R", value = true, leftIcon = Icons.R})
   	self.Menu.Ripper.Combo:MenuElement({id = "RHP", name = "Max enemy HP to R (%)", value = 65, min = 0, max = 100})
     	self.Menu.Ripper.Combo:MenuElement({id = "ER", name = "Min enemies to use R", value = 1, min = 1, max = 5})
-  --------- Menu LastHit --------------------------------------------------------------------------------------------------
+	-- LastHit ---------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "LastHit", name = "Last Hit"})
   	self.Menu.Ripper.LastHit:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
   	self.Menu.Ripper.LastHit:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
-  --------- Menu LaneClear ------------------------------------------------------------------------------------------------
+	-- LaneClear -------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "LaneClear", name = "Lane Clear"})
   	self.Menu.Ripper.LaneClear:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
   	self.Menu.Ripper.LaneClear:MenuElement({id = "W", name = "Use W", value = true, leftIcon = Icons.W})
   	self.Menu.Ripper.LaneClear:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
-  --------- Menu JungleClear --------------------------------------------------------------------
+	-- JungleClear -----------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "JungleClear", name = "Jungle Clear"})
   	self.Menu.Ripper.JungleClear:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
   	self.Menu.Ripper.JungleClear:MenuElement({id = "W", name = "Use W", value = true, leftIcon = Icons.W})
   	self.Menu.Ripper.JungleClear:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
-  --------- Menu Flee ----------------------------------------------------------------------------
+	-- Flee ------------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Flee", name = "Flee"})
   	self.Menu.Ripper.Flee:MenuElement({id ="W", name = "Use W", value = true, leftIcon = Icons.W})
   	self.Menu.Ripper.Flee:MenuElement({id ="R", name = "Use R", value = true, leftIcon = Icons.R})
   	self.Menu.Ripper.Flee:MenuElement({id = "ER", name = "Min enemies to use R", value = 3, min = 1, max = 5})
-  --------- Menu KS -----------------------------------------------------------------------------
+	-- Killsteal -------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "KS", name = "Killsteal"})
   	self.Menu.Ripper.KS:MenuElement({id = "W", name = "Use W", value = true, leftIcon = Icons.W})
   	self.Menu.Ripper.KS:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
   	self.Menu.Ripper.KS:MenuElement({id = "R", name = "Use R", value = true, leftIcon = Icons.R})                     
     	self.Menu.Ripper.KS:MenuElement({id = "ER", name = "Min enemies to use R", value = 3, min = 1, max = 5})
-   --------- Menu Harass ---------------------------------------------------------------------
+	-- Harass ----------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Harass", name = "Harass"})
   	self.Menu.Ripper.Harass:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
-  --------- Menu Misc -----------------------------------------------------------------------
+	-- Misc ------------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Misc", name = "Misc"})
     	self.Menu.Ripper.Misc:MenuElement({id = "SpeedW", name = "Use W for engage", value = false, leftIcon = Icons.W})
   	self.Menu.Ripper.Misc:MenuElement({id = "AutoR", name = "Auto R", value = false, leftIcon = Icons.R})
     	self.Menu.Ripper.Misc:MenuElement({id = "EAutoR", name = "Enemies to auto R", value = 4, min = 1, max = 5})
   	self.Menu.Ripper.Misc:MenuElement({id = "Key", name = "Auto R Key", key = string.byte(" ")})
-  --------- Menu Drawings --------------------------------------------------------------------
+	-- Drawings --------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Drawings", name = "Drawings"})
   	self.Menu.Ripper.Drawings:MenuElement({id = "E", name = "Draw E range", value = true})
   	self.Menu.Ripper.Drawings:MenuElement({id = "R", name = "Draw R range", value = true})
