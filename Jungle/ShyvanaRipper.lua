@@ -108,7 +108,9 @@ function Shyvana:GetValidEnemy(range)
   	return false
 end
 
-function Shyvana:IsValidTarget(unit,range) return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal and unit.pos:DistanceTo(myHero.pos) <= 1500 end
+function Shyvana:IsValidTarget(unit,range) 
+return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal and unit.pos:DistanceTo(myHero.pos) <= 1500 
+end
 
 function Shyvana:Ready (spell)
 	return Game.CanUseSpell(spell) == 0 
