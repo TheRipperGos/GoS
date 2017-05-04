@@ -102,7 +102,7 @@ function Shyvana:GetValidEnemy(range)
   	for i = 1,Game.HeroCount() do
     	local enemy = Game.Hero(i)
     	if  enemy.team ~= myHero.team and enemy.valid and enemy.pos:DistanceTo(myHero.pos) < 1500 then
-    		return true
+    	return true
     	end
     	end
   	return false
@@ -121,7 +121,7 @@ function Shyvana:CountEnemys(range)
     	for i = 1,Game.HeroCount() do
         local enemy = Game.Hero(i)
         if  enemy.team ~= myHero.team and enemy.valid and enemy.pos:DistanceTo(myHero.pos) < 1200 then
-            heroesCount = heroesCount + 1
+	heroesCount = heroesCount + 1
         end
     	end
     	return heroesCount
@@ -132,22 +132,22 @@ function Shyvana:Combo()
   	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
   	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(1500, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(1500,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 
-		if self:IsValidTarget(target,175) and myHero.pos:DistanceTo(target.pos) < 175 and self.Menu.Ripper.Combo.W:Value() and self:Ready(_W) then
-    		Control.CastSpell(HK_W)
-    		end
-  		if self:IsValidTarget(target,500) and myHero.pos:DistanceTo(target.pos) < 500 and self.Menu.Ripper.Combo.W:Value() and self:Ready(_W) and self.Menu.Ripper.Misc.SpeedW:Value() then
-    		Control.CastSpell(HK_W)
-    		end
-  		if self:IsValidTarget(target,825) and myHero.pos:DistanceTo(target.pos) < 825  and self.Menu.Ripper.Combo.E:Value() and self:Ready(_E) then
-    		Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
-    		end
-  		if self:IsValidTarget(target,125) and myHero.pos:DistanceTo(target.pos) < 125 and self.Menu.Ripper.Combo.Q:Value() and self:Ready(_Q) then
-    		Control.CastSpell(HK_Q)
-    		end
-  		if self:IsValidTarget(target,850) and myHero.pos:DistanceTo(target.pos) < 850 and self.Menu.Ripper.Combo.R:Value() and self:Ready(_R) and (target.health/target.maxHealth <= self.Menu.Ripper.Combo.RHP:Value() / 100) then
-    		if self:CountEnemys(1200) >= self.Menu.Ripper.Combo.ER:Value() then
-    			Control.CastSpell(HK_R,target:GetPrediction(R.speed,R.delay))
-      		end
+	if self:IsValidTarget(target,175) and myHero.pos:DistanceTo(target.pos) < 175 and self.Menu.Ripper.Combo.W:Value() and self:Ready(_W) then
+    	Control.CastSpell(HK_W)
+    	end
+  	if self:IsValidTarget(target,500) and myHero.pos:DistanceTo(target.pos) < 500 and self.Menu.Ripper.Combo.W:Value() and self:Ready(_W) and self.Menu.Ripper.Misc.SpeedW:Value() then
+    	Control.CastSpell(HK_W)
+    	end
+  	if self:IsValidTarget(target,825) and myHero.pos:DistanceTo(target.pos) < 825  and self.Menu.Ripper.Combo.E:Value() and self:Ready(_E) then
+    	Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
+    	end
+  	if self:IsValidTarget(target,125) and myHero.pos:DistanceTo(target.pos) < 125 and self.Menu.Ripper.Combo.Q:Value() and self:Ready(_Q) then
+    	Control.CastSpell(HK_Q)
+    	end
+  	if self:IsValidTarget(target,850) and myHero.pos:DistanceTo(target.pos) < 850 and self.Menu.Ripper.Combo.R:Value() and self:Ready(_R) and (target.health/target.maxHealth <= self.Menu.Ripper.Combo.RHP:Value() / 100) then
+    	if self:CountEnemys(1200) >= self.Menu.Ripper.Combo.ER:Value() then
+    	Control.CastSpell(HK_R,target:GetPrediction(R.speed,R.delay))
+      	end
     	end
 end
 
