@@ -95,7 +95,7 @@ function Shyvana:Tick()
     	elseif self.Menu.Ripper.Misc.Key:Value() then
     	self:AutoR()
     	end
-  	self:KS()
+	self:KS()
 end
 
 function Shyvana:GetValidEnemy(range)
@@ -134,16 +134,16 @@ function Shyvana:Combo()
 
 		if self:IsValidTarget(target,175) and myHero.pos:DistanceTo(target.pos) < 175 and self.Menu.Ripper.Combo.W:Value() and self:Ready(_W) then
     		Control.CastSpell(HK_W)
-    	end
+    		end
   		if self:IsValidTarget(target,500) and myHero.pos:DistanceTo(target.pos) < 500 and self.Menu.Ripper.Combo.W:Value() and self:Ready(_W) and self.Menu.Ripper.Misc.SpeedW:Value() then
     		Control.CastSpell(HK_W)
-    	end
+    		end
   		if self:IsValidTarget(target,825) and myHero.pos:DistanceTo(target.pos) < 825  and self.Menu.Ripper.Combo.E:Value() and self:Ready(_E) then
     		Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
-    	end
+    		end
   		if self:IsValidTarget(target,125) and myHero.pos:DistanceTo(target.pos) < 125 and self.Menu.Ripper.Combo.Q:Value() and self:Ready(_Q) then
     		Control.CastSpell(HK_Q)
-    	end
+    		end
   		if self:IsValidTarget(target,850) and myHero.pos:DistanceTo(target.pos) < 850 and self.Menu.Ripper.Combo.R:Value() and self:Ready(_R) and (target.health/target.maxHealth <= self.Menu.Ripper.Combo.RHP:Value() / 100) then
     		if self:CountEnemys(1200) >= self.Menu.Ripper.Combo.ER:Value() then
     			Control.CastSpell(HK_R,target:GetPrediction(R.speed,R.delay))
@@ -155,7 +155,7 @@ function Shyvana:GetValidMinion(range)
     	for i = 1,Game.MinionCount() do
         local minion = Game.Minion(i)
         if  minion.team ~= myHero.team and minion.valid and minion.pos:DistanceTo(myHero.pos) < E.range then
-            return true
+        return true
         end
     	end
     	return false
@@ -163,9 +163,9 @@ end
 
 function Shyvana:HpPred(unit, delay)
 	if _G.GOS then
-		hp =  GOS:HP_Pred(unit,delay)
+	hp =  GOS:HP_Pred(unit,delay)
 	else
-		hp = unit.health
+	hp = unit.health
 	end
 	return hp
 	end
@@ -173,9 +173,9 @@ function Shyvana:HpPred(unit, delay)
 function Shyvana:HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 	local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then 
-			return true
-		end
+	if buff.name == buffname and buff.count > 0 then 
+	return true
+	end
 	end
 	return false
 	end
@@ -186,14 +186,14 @@ function Shyvana:LastHitQ()
 	if level == nil or level == 0 then return end
   	if self:GetValidMinion(myHero.range) == false then return end
   	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
+	local minion = Game.Minion(i)
     	local Qdamage = (({40, 55, 70, 85, 100})[level] / 100 * myHero.totalDamage)
     	if self:IsValidTarget(minion,125) and myHero.pos:DistanceTo(minion.pos) < 125 and minion.isEnemy then
-      		if Qdamage >= self:HpPred(minion, 0.5) and self:Ready(_Q) then
-        		Control.CastSpell(HK_Q)
-        	elseif Qdamage >= minion.health and self:HasBuff(myHero, "ShyvanaDoubleAttack") then
-        		Control.SetCursorPos(minion.pos)
-        	end
+      	if Qdamage >= self:HpPred(minion, 0.5) and self:Ready(_Q) then
+        Control.CastSpell(HK_Q)
+        elseif Qdamage >= minion.health and self:HasBuff(myHero, "ShyvanaDoubleAttack") then
+        Control.SetCursorPos(minion.pos)
+        end
       	end
     	end
 end  	
@@ -204,33 +204,33 @@ function Shyvana:LastHitE()
 	if level == nil or level == 0 then return end
   	if self:GetValidMinion(myHero.range) == false then return end
   	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
+	local minion = Game.Minion(i)
     	local Edamage = (({60, 100, 140, 180, 220})[level] + 0.3 * myHero.ap)
     	if self:IsValidTarget(minion,925) and minion.isEnemy then
-      		if Edamage >= minion.health and Edamage >= self:HpPred(minion, 0.5) and self:Ready(_E) then
-        		Control.CastSpell(HK_E,minion.pos)
-        	end
+      	if Edamage >= minion.health and Edamage >= self:HpPred(minion, 0.5) and self:Ready(_E) then
+        Control.CastSpell(HK_E,minion.pos)
+        end
       	end
-    		end
+    	end
 end  
     		
 function Shyvana:JungleClear()
   	if self:GetValidMinion(E.range) == false then return end
   	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
+	local minion = Game.Minion(i)
     	if  minion.team == 300 then
-      		if self:IsValidTarget(minion,125) and myHero.pos:DistanceTo(minion.pos) < 125  and self.Menu.Ripper.JungleClear.Q:Value() and self:Ready(_Q) then
-					Control.CastSpell(HK_Q)
-				break
-			end
-			if self:IsValidTarget(minion,175) and myHero.pos:DistanceTo(minion.pos) < 175 and self.Menu.Ripper.JungleClear.W:Value() and self:Ready(_W) then
-					Control.CastSpell(HK_W)
-				break
-			end
-			if self:IsValidTarget(minion,925) and myHero.pos:DistanceTo(minion.pos) < 400 and self.Menu.Ripper.JungleClear.E:Value() and self:Ready(_E) then
-					Control.CastSpell(HK_E,minion.pos)
-				break
-			end
+      	if self:IsValidTarget(minion,125) and myHero.pos:DistanceTo(minion.pos) < 125  and self.Menu.Ripper.JungleClear.Q:Value() and self:Ready(_Q) then
+	Control.CastSpell(HK_Q)
+	break
+	end
+	if self:IsValidTarget(minion,175) and myHero.pos:DistanceTo(minion.pos) < 175 and self.Menu.Ripper.JungleClear.W:Value() and self:Ready(_W) then
+	Control.CastSpell(HK_W)
+	break
+	end
+	if self:IsValidTarget(minion,925) and myHero.pos:DistanceTo(minion.pos) < 400 and self.Menu.Ripper.JungleClear.E:Value() and self:Ready(_E) then
+	Control.CastSpell(HK_E,minion.pos)
+	break
+	end
       	end
     	end
 end
@@ -238,20 +238,20 @@ end
 function Shyvana:LaneClear()
   	if self:GetValidMinion(E.range) == false then return end
   	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
+	local minion = Game.Minion(i)
     	if  minion.team == 200 then
-      		if self:IsValidTarget(minion,125) and myHero.pos:DistanceTo(minion.pos) < 125 and self.Menu.Ripper.LaneClear.Q:Value() and self:Ready(_Q) then
-					Control.CastSpell(HK_Q)
-				break
-			end
-			if self:IsValidTarget(minion,175) and myHero.pos:DistanceTo(minion.pos) < 175 and self.Menu.Ripper.LaneClear.W:Value() and self:Ready(_W) then
-					Control.CastSpell(HK_W)
-				break
-			end
-			if self:IsValidTarget(minion,925) and myHero.pos:DistanceTo(minion.pos) < 400 and self.Menu.Ripper.LaneClear.E:Value() and self:Ready(_E) then
-					Control.CastSpell(HK_E,minion.pos)
-				break
-			end
+      	if self:IsValidTarget(minion,125) and myHero.pos:DistanceTo(minion.pos) < 125 and self.Menu.Ripper.LaneClear.Q:Value() and self:Ready(_Q) then
+	Control.CastSpell(HK_Q)
+	break
+	end
+	if self:IsValidTarget(minion,175) and myHero.pos:DistanceTo(minion.pos) < 175 and self.Menu.Ripper.LaneClear.W:Value() and self:Ready(_W) then
+	Control.CastSpell(HK_W)
+	break
+	end
+	if self:IsValidTarget(minion,925) and myHero.pos:DistanceTo(minion.pos) < 400 and self.Menu.Ripper.LaneClear.E:Value() and self:Ready(_E) then
+	Control.CastSpell(HK_E,minion.pos)
+	break
+	end
       	end
     	end
 end
@@ -273,7 +273,7 @@ function Shyvana:AutoR()
   	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
   	if self:Ready(_R) and self.Menu.Ripper.Misc.AutoR:Value() then
     	if self:CountEnemys(1200) >= self.Menu.Ripper.Misc.EAutoR:Value() then
-      		Control.CastSpell(HK_R)
+      	Control.CastSpell(HK_R)
       	end
     	end
 end
@@ -291,35 +291,35 @@ function Shyvana:KS()
   	if self:GetValidEnemy(1200) == false then return end
   	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
   	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(1200, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(1200,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
-  		if self:IsValidTarget(target,175) and myHero.pos:DistanceTo(target.pos) < 175 and self.Menu.Ripper.KS.W:Value() and self:Ready(_W) then
-    		local level = myHero:GetSpellData(_W).level
-    		local Wdamage = CalcMagicalDamage(myHero, target, (({20, 32, 45, 57, 70})[level] + 0.2 * myHero.totalDamage + 0.1 * myHero.ap))
-            if Wdamage >= self:HpPred(target,1) + target.hpRegen * 2 then
-  				Control.CastSpell(HK_W)
-    		end
-    		end
-  		if self:IsValidTarget(target,825) and myHero.pos:DistanceTo(target.pos) < 825 and self.Menu.Ripper.KS.E:Value() and self:Ready(_E) then
-    		local level = myHero:GetSpellData(_E).level
-    		local Edamage = CalcMagicalDamage(myHero, target, (({60, 100, 140, 180, 220})[level] + 0.3 * myHero.ap))
-            if Edamage >= self:HpPred(target,1) + target.hpRegen * 2 then
-  				Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
-    		end
-    		end
-  		if self:IsValidTarget(target,800) and myHero.pos:DistanceTo(target.pos) < 800 and self.Menu.Ripper.KS.R:Value() and self:Ready(_R) then
-    		local level = myHero:GetSpellData(_R).level
-    		local Rdamage = CalcMagicalDamage(myHero, target, (({150, 250, 350})[level] + (0.7 * myHero.ap)))
-            if self:CountEnemys(1200) >= self.Menu.Ripper.KS.ER:Value() and Rdamage >= self:HpPred(target,1) + target.hpRegen * 2 then
-  				Control.CastSpell(HK_R,target:GetPrediction(R.speed,R.delay))
-    		end
-    		end
+  	if self:IsValidTarget(target,175) and myHero.pos:DistanceTo(target.pos) < 175 and self.Menu.Ripper.KS.W:Value() and self:Ready(_W) then
+    	local level = myHero:GetSpellData(_W).level
+    	local Wdamage = CalcMagicalDamage(myHero, target, (({20, 32, 45, 57, 70})[level] + 0.2 * myHero.totalDamage + 0.1 * myHero.ap))
+	if Wdamage >= self:HpPred(target,1) + target.hpRegen * 2 then
+  	Control.CastSpell(HK_W)
+	end
+    	end
+  	if self:IsValidTarget(target,825) and myHero.pos:DistanceTo(target.pos) < 825 and self.Menu.Ripper.KS.E:Value() and self:Ready(_E) then
+    	local level = myHero:GetSpellData(_E).level
+    	local Edamage = CalcMagicalDamage(myHero, target, (({60, 100, 140, 180, 220})[level] + 0.3 * myHero.ap))
+	if Edamage >= self:HpPred(target,1) + target.hpRegen * 2 then
+  	Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
+	end
+	end
+	if self:IsValidTarget(target,800) and myHero.pos:DistanceTo(target.pos) < 800 and self.Menu.Ripper.KS.R:Value() and self:Ready(_R) then
+    	local level = myHero:GetSpellData(_R).level
+    	local Rdamage = CalcMagicalDamage(myHero, target, (({150, 250, 350})[level] + (0.7 * myHero.ap)))
+	if self:CountEnemys(1200) >= self.Menu.Ripper.KS.ER:Value() and Rdamage >= self:HpPred(target,1) + target.hpRegen * 2 then
+  	Control.CastSpell(HK_R,target:GetPrediction(R.speed,R.delay))
+	end
+    	end
 end
 
 function Shyvana:Draw()
 	if myHero.dead then return end
-		if self.Menu.Ripper.Drawings.E:Value() then Draw.Circle(myHero.pos, 925, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())
-		end
-		if self.Menu.Ripper.Drawings.R:Value() then Draw.Circle(myHero.pos, 850, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())	
-		end	
+	if self.Menu.Ripper.Drawings.E:Value() then Draw.Circle(myHero.pos, 925, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())
+	end
+	if self.Menu.Ripper.Drawings.R:Value() then Draw.Circle(myHero.pos, 850, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())	
+	end	
 end
   
 function OnLoad()
