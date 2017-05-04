@@ -95,7 +95,7 @@ function Shyvana:Tick()
     	elseif self.Menu.Ripper.Misc.Key:Value() then
     	self:AutoR()
     	end
-  		self:KS()
+  	self:KS()
 end
 
 function Shyvana:GetValidEnemy(range)
