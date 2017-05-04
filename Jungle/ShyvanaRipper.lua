@@ -323,6 +323,6 @@ function Shyvana:Draw()
 end
   
 function OnLoad()
-    if myHero.charName ~= "Shyvana" then return end
-    Shyvana()
+    	if myHero.charName ~= "Shyvana" then return end
+	Shyvana()
 end
