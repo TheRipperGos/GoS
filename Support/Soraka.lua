@@ -202,10 +202,4 @@ end
 function OnLoad()
     	if myHero.charName ~= "Soraka" then return end
 	Soraka()
-    for i = 1, #GetEnemyHeroes() do
-      local enemy = GetEnemyHeroes()[i]
-      if enemy then
-         Menu:MenuElement({name = Enemy.charName,  id = Enemy.charName, value = true})
-      end
-	end
 end
