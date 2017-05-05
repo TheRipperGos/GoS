@@ -24,8 +24,9 @@ function Soraka:LoadMenu()
   	local 
   
   --------- Menu Principal --------------------------------------------------------------
+  ------ Main Menu -------------------------------------------------------------------------------------------------------------------
   	self.Menu = MenuElement({type = MENU, id = "Menu", name = "The Ripper Series", leftIcon = Icons.C})
-  --------- Soraka --------------------------------------------------------------------
+-- Shyvana ---------------------------------------------------------------------------------------------------------------------
 	self.Menu:MenuElement({type = MENU, id = "Ripper", name = "Soraka The Healer", leftIcon = Icons.C })
   --------- Menu Principal --------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Combo", name = "Combo"})
