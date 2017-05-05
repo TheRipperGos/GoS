@@ -15,7 +15,7 @@ function Soraka:LoadSpells()
 end
 
 function Soraka:LoadMenu()
-  	local Icons = { C = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/8/8d/SorakaSquare.png/",
+  	local Icons = { C = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/8/8d/SorakaSquare.png",
     				Q = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/cd/Starcall.png", 
     				W = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/6/6f/Astral_Infusion.png", 
     				E = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/e/e7/Equinox.png", 
