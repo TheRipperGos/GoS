@@ -22,7 +22,7 @@ function Rammus:LoadMenu()
                     	R = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/1/1c/Tremors.png" }
 	-- Main Menu -------------------------------------------------------------------------------------------------------------------
   	self.Menu = MenuElement({type = MENU, id = "Menu", name = "The Ripper Series", leftIcon = Icons.C})
-	-- Rammus ---------------------------------------------------------------------------------------------------------------------
+	-- Rammus ----------------------------------------------------------------------------------------------------------------------
 	self.Menu:MenuElement({type = MENU, id = "Ripper", name = "Rammus The Ripper", leftIcon = Icons.C })
 	-- Combo -----------------------------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Combo", name = "Combo"})
@@ -130,10 +130,10 @@ function Rammus:Combo()
     	Control.CastSpell(HK_Q)
     	end
   	if self:IsValidTarget(target,R.range) and not self:HasBuff(myHero, "PowerBall") and myHero.pos:DistanceTo(target.pos) < R.range and self.Menu.Ripper.Combo.R:Value() and self:Ready(_R) then
-			local level = myHero:GetSpellData(_R).level
-			local Rdamage = CalcMagicalDamage(myHero, target, (({65, 130, 195})[level] + 0.3 * myHero.ap))
-			if Rdamage >= (self:HpPred(target,1) + target.hpRegen * 2) /  self.Menu.Ripper.Combo.XR:Value() then
-			Control.CastSpell(HK_R)
+	local level = myHero:GetSpellData(_R).level
+	local Rdamage = CalcMagicalDamage(myHero, target, (({65, 130, 195})[level] + 0.3 * myHero.ap))
+	if Rdamage >= (self:HpPred(target,1) + target.hpRegen * 2) /  self.Menu.Ripper.Combo.XR:Value() then
+	Control.CastSpell(HK_R)
       	end
     	end
 end
