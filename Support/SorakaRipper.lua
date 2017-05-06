@@ -37,7 +37,7 @@ function Soraka:__init()
 end
 
 function Soraka:LoadSpells()
-  	Q = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width, radius = myHero:GetSpellData(_Q).radius, Type = "circle" }
+  	Q = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width, radius = 235, type ="Circle" }
 	W = { range = myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width }
 	E = { range = myHero:GetSpellData(_E).range, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width }
 	R = { range = myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width }
@@ -404,10 +404,10 @@ end
 
 function Soraka:SelfAutoR()
 	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
-    if self:GetValidEnemy(550) == false then return end
-  	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(550, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(550,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
+    if self:GetValidEnemy(425) == false then return end
+  	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(425, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(425,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 	if self.Menu.Ripper.ULT.R:Value() == false then return end
-		if (myHero.health/myHero.maxHealth <= self.Menu.Ripper.ULT.Health:Value() / 100) and self:Ready(_R) and (self:CountEnemies(myHero.pos,500) > 0)then
+		if self:IsValidTarget(target,425) and (myHero.health/myHero.maxHealth <= self.Menu.Ripper.ULT.Health:Value() / 100) and self:Ready(_R) and myHero.pos:DistanceTo(target.pos) < 425 then
 			Control.CastSpell(HK_R)
 		end
 end
