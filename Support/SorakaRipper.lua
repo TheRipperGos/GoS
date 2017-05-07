@@ -37,7 +37,7 @@ function Soraka:__init()
 end
 
 function Soraka:LoadSpells()
-  	Q = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width, radius = 235, type ="Circle" }
+  	Q = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width, radius = 235 }
 	W = { range = myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width }
 	E = { range = myHero:GetSpellData(_E).range, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width }
 	R = { range = myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width }
@@ -66,7 +66,7 @@ function Soraka:LoadMenu()
 	--------- Menu LaneClear ------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "LaneClear", name = "Lane Clear"})
   	self.Menu.Ripper.LaneClear:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
-    self.Menu.Ripper.LaneClear:MenuElement({id = "HQ", name = "Min minions in Q range", value = 4, min = 1, max = 7})
+    self.Menu.Ripper.LaneClear:MenuElement({id = "HQ", name = "Min minions hit by Q", value = 4, min = 1, max = 7})
     self.Menu.Ripper.LaneClear:MenuElement({id = "Mana", name = "Min mana to Clear (%)", value = 40, min = 0, max = 100})
 	--------- Menu JungleClear ------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "JungleClear", name = "Jungle Clear"})
@@ -236,31 +236,15 @@ function Soraka:HpPred(unit, delay)
 	return hp
 end
 
-function Soraka:LastQ()
-	if self.Menu.Ripper.LastHit.Q:Value() == false then return end
-    local level = myHero:GetSpellData(_Q).level
-	if level == nil or level == 0 then return end
-  	if self:GetValidMinion(myHero.range) == false then return end
-  	for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)
-    local Qdamage = (({70, 110, 150, 190, 230})[level] + 0.35 * myHero.ap)
-    if self:IsValidTarget(minion,800) and minion.isEnemy then
-    	if Qdamage >= minion.health and Qdamage >= self:HpPred(minion, 0.5) and (myHero.mana/myHero.maxMana >= self.Menu.Ripper.LastHit.Mana:Value() / 100) and self:Ready(_Q) then
-    		Control.CastSpell(HK_Q,minion.pos)
-    	end
-    end
-    end
-end
-
-function Soraka:CountEnemyMinions(range)
-	local minionsCount = 0
-    for i = 1,Game.MinionCount() do
+function Soraka:MinionsAround(pos, range)
+    local Count = 0
+    for i = 1, Game.MinionCount() do
         local minion = Game.Minion(i)
-        if  minion.team ~= myHero.team and minion.valid and minion.pos:DistanceTo(myHero.pos) < Q.range then
-            minionsCount = minionsCount + 1
+        if minion and minion.team == 200 and not minion.dead and GetDistance(pos, minion.pos) <= Q.radius then
+            Count = Count + 1
         end
     end
-    return minionsCount
+    return Count
 end
 
 function Soraka:LaneClear()
@@ -268,8 +252,8 @@ function Soraka:LaneClear()
   	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
     	if  minion.team == 200 then
-      	if self:IsValidTarget(minion,400) and myHero.pos:DistanceTo(minion.pos) < 400 and self.Menu.Ripper.LaneClear.Q:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Ripper.LaneClear.Mana:Value() / 100 ) and self:Ready(_Q) then
-			if self:CountEnemyMinions(Q.range) >= self.Menu.Ripper.LaneClear.HQ:Value() then
+      	if self:IsValidTarget(minion,800) and myHero.pos:DistanceTo(minion.pos) < 800 and self.Menu.Ripper.LaneClear.Q:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Ripper.LaneClear.Mana:Value() / 100 ) and self:Ready(_Q) then
+			if self:MinionsAround(minion.pos, 235) >= self.Menu.Ripper.LaneClear.HQ:Value() then
 				Control.CastSpell(HK_Q,minion.pos)
 				end
 			end
@@ -312,6 +296,16 @@ function Soraka:Harass()
     end
 end
 
+function Shyvana:HasBuff(unit, buffname)
+	for i = 0, unit.buffCount do
+	local buff = unit:GetBuff(i)
+	if buff.name == buffname and buff.count > 0 then 
+	return true
+	end
+	end
+	return false
+end
+
 function Soraka:Flee()
   	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
     if self:GetValidEnemy(925) == false then return end
@@ -324,9 +318,9 @@ function Soraka:Flee()
         Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
     end
   	if self:GetValidAlly(550) == false then return end
-  	if self:IsValidTarget(ally,550) and myHero.pos:DistanceTo(ally.pos) < 550 and self:Ready(_W) and (myHero.helth/myHero.maxHealth >= 60 / 100 ) then
-    if ally.pos:DistanceTo(target.pos) < myHero.pos:DistanceTo(target.pos) then
-    	Control.CastSpell(HK_W,ally)
+  	if self:IsValidTarget(ally,550) and myHero.pos:DistanceTo(ally.pos) < 550 and self:HasBuff(myHero, "sorakaqregen") and self:Ready(_W) and (myHero.helth/myHero.maxHealth >= 60 / 100 ) then
+    if	(self:CountEnemies(ally.pos,500) > 0) and not ally.isMe then
+		Control.CastSpell(HK_W,ally)
     end
     end
 end
@@ -441,7 +435,6 @@ function Soraka:IsChannelling(unit)
 		if unit:GetSpellData(spell.Key).level > 0 and (unit:GetSpellData(spell.Key).name == spell.SpellName or unit:GetSpellData(spell.Key).currentCd > unit:GetSpellData(spell.Key).cd - spell.Duration or (spell.Buff and self:GotBuff(unit,spell.Buff) > 0)) then
 				result = true
 				break
-			
 		end
 	end
 	return result
