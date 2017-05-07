@@ -59,10 +59,6 @@ function Soraka:LoadMenu()
   	self.Menu.Ripper:MenuElement({type = MENU, id = "Combo", name = "Combo"})
   	self.Menu.Ripper.Combo:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
   	self.Menu.Ripper.Combo:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
-	--------- Menu LastHit --------------------------------------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "LastHit", name = "Last Hit"})
-  	self.Menu.Ripper.LastHit:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
-    self.Menu.Ripper.LastHit:MenuElement({id = "Mana", name = "Min mana to LastHit (%)", value = 40, min = 0, max = 100})
 	--------- Menu LaneClear ------------------------------------------------------------------------------------------------
   	self.Menu.Ripper:MenuElement({type = MENU, id = "LaneClear", name = "Lane Clear"})
   	self.Menu.Ripper.LaneClear:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
@@ -147,11 +143,9 @@ function Soraka:Tick()
   	local Flee = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE]) or (_G.GOS and _G.GOS:GetMode() == "Flee") or (_G.EOWLoaded and EOW:Mode() == "Flee")
   	if Combo then
     	self:Combo()
-    elseif LastHit then
-    	self:LastQ()
     elseif Clear then
     	self:LaneClear()
-		self:JungleClear()
+	self:JungleClear()
     elseif Harass then
     	self:Harass()
     elseif Flee then
