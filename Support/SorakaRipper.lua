@@ -236,11 +236,11 @@ function Soraka:HpPred(unit, delay)
 	return hp
 end
 
-function Soraka:MinionsAround(pos, range)
+function Soraka:MinionsAround(pos, range, team)
     local Count = 0
     for i = 1, Game.MinionCount() do
-        local minion = Game.Minion(i)
-        if minion and minion.team == 200 and not minion.dead and GetDistance(pos, minion.pos) <= Q.radius then
+        local m = Game.Minion(i)
+        if m and m.team == 200 and not m.dead and m.pos:DistanceTo(pos, m.pos) < 235 then
             Count = Count + 1
         end
     end
@@ -253,7 +253,7 @@ function Soraka:LaneClear()
 	local minion = Game.Minion(i)
     	if  minion.team == 200 then
       	if self:IsValidTarget(minion,800) and myHero.pos:DistanceTo(minion.pos) < 800 and self.Menu.Ripper.LaneClear.Q:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Ripper.LaneClear.Mana:Value() / 100 ) and self:Ready(_Q) then
-			if self:MinionsAround(minion.pos, 235) >= self.Menu.Ripper.LaneClear.HQ:Value() then
+			if self:MinionsAround(minion.pos, 235, 200) >= self.Menu.Ripper.LaneClear.HQ:Value() then
 				Control.CastSpell(HK_Q,minion.pos)
 				end
 			end
@@ -296,7 +296,7 @@ function Soraka:Harass()
     end
 end
 
-function Shyvana:HasBuff(unit, buffname)
+function Soraka:HasBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 	local buff = unit:GetBuff(i)
 	if buff.name == buffname and buff.count > 0 then 
