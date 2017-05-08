@@ -472,7 +472,11 @@ end
 
 function Annie:Draw()
 	if myHero.dead then return end
-	if self.Menu.Ripper.Drawings.Q:Value() then Draw.Circle(myHero.pos, 800, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())
+	if self.Menu.Ripper.Drawings.Q:Value() then Draw.Circle(myHero.pos, Q.range, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())
+	end
+	if self.Menu.Ripper.Drawings.W:Value() then Draw.Circle(myHero.pos, W.range, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())
+	end
+	if self.Menu.Ripper.Drawings.R:Value() then Draw.Circle(myHero.pos, R.range, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())
 	end
 end
     
