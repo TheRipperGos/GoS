@@ -693,7 +693,7 @@ function Olaf:Lasthit()
 		local minion = Game.Minion(i)
 		if  minion.team == 200 then
 			local Qlevel = myHero:GetSpellData(_Q).level
-			local Qdamage = (({70, 115, 160, 205, 250})[Qlevel] + myHero.totalDamage)
+			local Qdamage = (({70, 115, 160, 205, 250})[Qlevel] + myHero.bonusDamage)
 			if ValidTarget(minion,950) and myHero.pos:DistanceTo(minion.pos) < 950 and Ready(_Q) and (myHero.mana/myHero.maxMana >= Legendary.Lasthit.Mana:Value()/100 ) and minion.isEnemy then
 				if Qdamage >= HpPred(minion, 0.5) then
 				local Qpos = minion:GetPrediction(1450, 0.25)
@@ -816,7 +816,7 @@ end
 function Olaf:Killsteal()
 	if target == nil then return end
 	local Qlevel = myHero:GetSpellData(_Q).level
-	local Qdamage = CalcPhysicalDamage(myHero, target, (({70, 115, 160, 205, 250})[Qlevel] + myHero.totalDamage))
+	local Qdamage = CalcPhysicalDamage(myHero, target, (({70, 115, 160, 205, 250})[Qlevel] + myHero.bonusDamage))
 	if Legendary.Killsteal.Q:Value() and Ready(_Q) then
 		if Qdamage >= HpPred(target, 1) then
 			if target.valid and not target.dead then
