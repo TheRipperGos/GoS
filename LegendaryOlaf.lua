@@ -636,6 +636,7 @@ function Olaf:Combo()
 end
 
 function Olaf:Harass()
+	if Legendary.Keys.SpellHarass:Value() == false then return end
 	if target == nil then return end
 	if Legendary.Harass.Q:Value() and Ready(_Q) and myHero.mana/myHero.maxMana >= Legendary.Harass.Mana:Value()/100 then
 		 if target.valid and not target.dead then
@@ -650,6 +651,7 @@ function Olaf:Harass()
 end
 
 function Olaf:Clear()
+if Legendary.Keys.SpellClear:Value() == false then return end
 local ClearQ = Legendary.Clear.Q:Value()
 local ClearW = Legendary.Clear.W:Value()
 local ClearE = Legendary.Clear.E:Value()
@@ -692,7 +694,7 @@ function Olaf:Lasthit()
 		if  minion.team == 200 then
 			local Qlevel = myHero:GetSpellData(_Q).level
 			local Qdamage = (({70, 115, 160, 205, 250})[Qlevel] + myHero.totalDamage)
-			if ValidTarget(minion,950) and myHero.pos:DistanceTo(minion.pos) < 950 and Ready(_Q) and (myHero.mana/myHero.maxMana >= Legendary.Lasthit.Mana:Value()/100 ) and minion.isEnemy then
+			if ValidTarget(minion,950) and myHero.pos:DistanceTo(minion.pos) < 950 and Ready(_Q) and (myHero.mana/myHero.maxMana >= Legendary.Lasthit.Mana:Value()/100 ) and minion.isEnemy and not Qlevel == 0 then
 				if Qdamage >= HpPred(minion, 0.5) then
 				local Qpos = minion:GetPrediction(1450, 0.25)
 					Control.CastSpell(HK_Q, Qpos)
@@ -700,7 +702,7 @@ function Olaf:Lasthit()
 			end
 			local Elevel = myHero:GetSpellData(_E).level
 			local Edamage = (({70, 115, 160, 205, 250})[Elevel] + 0.4 * myHero.totalDamage)
-			if ValidTarget(minion,325) and myHero.pos:DistanceTo(minion.pos) < 325 and Ready(_E) and (myHero.health/myHero.maxHealth >= Legendary.Lasthit.Life:Value()/100 ) and minion.isEnemy then
+			if ValidTarget(minion,325) and myHero.pos:DistanceTo(minion.pos) < 325 and Ready(_E) and (myHero.health/myHero.maxHealth >= Legendary.Lasthit.Life:Value()/100 ) and minion.isEnemy and not Elevel == 0 then
 				if Edamage >= HpPred(minion, 0.5) then
 					Control.CastSpell(HK_E,minion.pos)
 				end
@@ -815,7 +817,7 @@ function Olaf:Killsteal()
 	if target == nil then return end
 	local Qlevel = myHero:GetSpellData(_Q).level
 	local Qdamage = CalcPhysicalDamage(myHero, target, (({70, 115, 160, 205, 250})[Qlevel] + myHero.totalDamage))
-	if Legendary.Killsteal.Q:Value() and Ready(_Q) then
+	if Legendary.Killsteal.Q:Value() and Ready(_Q) and not Qlevel == 0 then
 		if Qdamage >= HpPred(target, 1) then
 			if target.valid and not target.dead then
 				Control.CastSpell(HK_Q,target:GetPrediction(Q.speed,Q.delay))
@@ -824,8 +826,8 @@ function Olaf:Killsteal()
 	end
 	local Elevel = myHero:GetSpellData(_E).level
 	local Edamage = (({70, 115, 160, 205, 250})[Elevel] + 0.4 * myHero.totalDamage)
-	if Legendary.Killsteal.E:Value() and Ready(_E) and target.distance < 325 then
-		 if target.valid and not target.dead then
+	if Legendary.Killsteal.E:Value() and Ready(_E) and target.distance < 325 and not Elevel == 0 then
+		if target.valid and not target.dead then
 			if Edamage >= HpPred(target, 1) then
 				Control.CastSpell(HK_E,target)
 			end
