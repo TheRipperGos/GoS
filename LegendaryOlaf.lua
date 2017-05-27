@@ -11,12 +11,13 @@ Legendary:MenuElement({type = MENU, id = "Flee", name = "Flee Settings"})
 Legendary:MenuElement({type = MENU, id = "Cleanse", name = "Cleanse Settings"})
 Legendary:MenuElement({type = MENU, id = "Killsteal", name = "Killsteal Settings"})
 Legendary:MenuElement({type = MENU, id = "Drawing", name = "Drawing Settings"})
+Legendary:MenuElement({type = MENU, id = "AS", name = "CastDelay Settings"})
 
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana
 end
 
-function GetTarget(range)
+function KoreanTarget(range)
 	if _G.SDK then return _G.SDK.TargetSelector:GetTarget(1000, _G.SDK.DAMAGE_TYPE_PHYSICAL) elseif _G.GOS then return _G.GOS:GetTarget(1000,"AD")
 	end
 end
@@ -148,7 +149,7 @@ local function IsImmune(unit)
 	return false
 end
 
-function ValidTarget(unit, range, onScreen)
+function IsValidTarget(unit, range, onScreen)
     local range = range or 20000
     
     return unit and unit.distance <= range and not unit.dead and unit.valid and unit.visible and unit.isTargetable and not (onScreen and not unit.pos2D.onScreen)
@@ -216,7 +217,7 @@ local function GetEnemyMinions(range)
     EnemyMinions = {}
     for i = 1, Game.MinionCount() do
         local Minion = Game.Minion(i)
-        if Minion.isEnemy and ValidTarget(Minion, range, false, myHero) and not Minion.dead then
+        if Minion.isEnemy and IsValidTarget(Minion, range, false, myHero) and not Minion.dead then
             table.insert(EnemyMinions, Minion)
         end
     end
@@ -331,19 +332,88 @@ if myHero.alive == false then return end
 end
 
 require "DamageLib"
+require "Collision"
+
+_G.Spells = { 
+        ["Olaf"] = {
+            ["targetvalue"] = 1000,
+            ["OlafAxeThrowCast"] = {delay = 0.25, range = 1000, speed = 1450, width = 70, skillshot = true, collision = false},
+            ["OlafFrenziedStrikes"] = {delay = 0.25, skillshot = false, collision = false},
+            ["OlafRecklessStrike"] = {delay = 0.25, range = 325, speed = 1600, skillshot = false, collision = false},
+    		["OlafRagnarok"] = {delay = 0, skillshot = false, collision = false}}
+}
+--KoreanCast
+function KoreanCanCast(spell)
+local target = KoreanTarget(Spells[myHero.charName]["targetvalue"])
+local spellname = Spells[myHero.charName][tostring(myHero:GetSpellData(spell).name)]
+    if target == nil then return end
+    local Range = spellname.range * 0.969 or math.huge
+    if spellname.skillshot == true and spellname.collision == true then 
+        if IsValidTarget(target, Range , true) then 
+            if not spellname.spellColl:__GetCollision(myHero, target, 5) then
+                return true
+            end
+        end
+    end
+    if spellname.collision == false then
+        return IsValidTarget(target, Range, true) 
+    end
+end 
+
+function KoreanPred(target, spell)
+local spellname = Spells[myHero.charName][tostring(myHero:GetSpellData(spell).name)]
+local pos = GetPred(target, spellname.speed, spellname.delay + Game.Latency()/1000)
+    if pos and GetDistance(pos,myHero.pos) < spellname.range then 
+      return pos
+    end
+end     
+
+local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
+
+local function KoreanCast(spell,pos,delay)
+	if pos == nil then return end
+local ticker = GetTickCount()
+
+	if castSpell.state == 0 and ticker - castSpell.casting > delay + Game.Latency() and pos:ToScreen().onScreen then
+		castSpell.state = 1
+		castSpell.mouse = mousePos
+		castSpell.tick = ticker
+	end
+	if castSpell.state == 1 then
+		if ticker - castSpell.tick < Game.Latency() then
+			Control.SetCursorPos(pos)
+			Control.KeyDown(spell)
+			Control.KeyUp(spell)
+			castSpell.casting = ticker + delay
+			DelayAction(function()
+				if castSpell.state == 1 then
+					Control.SetCursorPos(castSpell.mouse)
+					castSpell.state = 0
+				end
+			end, Game.Latency()/1000)
+		end
+		if ticker - castSpell.casting > Game.Latency() then
+			Control.SetCursorPos(castSpell.mouse)
+			castSpell.state = 0
+		end
+	end
+end
+
+local function KoreanCast2(spell, pos, delay)
+    local Cursor = Game.mousePos()
+    if pos == nil then return end
+        Control.SetCursorPos(pos)
+        DelayAction(function() Control.KeyDown(spell) end,0.01) 
+        DelayAction(function() Control.KeyUp(spell) end, (delay + Game.Latency()) / 1000) -- ˇ ˆ
+end 
 
 class "Olaf"
 
 function Olaf:__init()
     print("Legendary Olaf v1.0 Loaded")
     self:Menu()
-	self:LoadSpells()
     Callback.Add("Draw", function() self:Draw() end)
     Callback.Add("Tick", function() self:Tick() end)
-end
-
-function Olaf:LoadSpells()
-	Q = { range = 1000, speed = 1450, delay = 0.25 }
 end
 
 function Olaf:Menu()
@@ -504,6 +574,8 @@ function Olaf:Menu()
 	Legendary.Drawing:MenuElement({id = "Smite", name = "Smite Status", value = true})
 	Legendary.Drawing:MenuElement({id = "DrawClear", name = "Draw Spell (Clear) Status", value = true})
 	Legendary.Drawing:MenuElement({id = "DrawHarass", name = "Draw Spell (Harass) Status", value = true})
+	-- Delay --
+	Legendary.AS:MenuElement({id = "QAS", name = "[Q] Delay Value", value = 250, min = 1, max = 1000, step = 10, leftIcon = Icon.Q})
 end
 
 function Olaf:Tick()
@@ -513,7 +585,7 @@ function Olaf:Tick()
   	local Harass = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS]) or (_G.GOS and _G.GOS:GetMode() == "Harass")
   	local Flee = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE]) or (_G.GOS and _G.GOS:GetMode() == "Flee")
     if myHero.dead then return end
-    target = GetTarget(1000)
+    target = KoreanTarget(1500)
     if Combo then
         self:Combo(target)
     elseif target and Harass then
@@ -533,8 +605,8 @@ function Olaf:Combo()
     if target == nil then return end
 	-- Combo
     if Legendary.Combo.Q:Value() and Ready(_Q) then
-		 if target.valid and not target.dead then
-			Control.CastSpell(HK_Q,target:GetPrediction(Q.speed,Q.delay))
+		 if KoreanCanCast(_Q) then
+                KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
 		end
 	end
 	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 250 then
@@ -591,44 +663,44 @@ function Olaf:Combo()
 	-- Spells
 	if Legendary.Combo.Spells.IG:Value() then 
    		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-       		if ValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.IGS.HP:Value()/100 then
+       		if IsValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.IGS.HP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
 		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-        	if ValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.IGS.HP:Value()/100 then
+        	if IsValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.IGS.HP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
 		end
 	end
 	if Legendary.Combo.Spells.EX:Value() then 
    		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
-       		if ValidTarget(target, 650, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.EXS.HP:Value()/100 then
+       		if IsValidTarget(target, 650, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.EXS.HP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
 		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
-        	if ValidTarget(target, 650, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.EXS.HP:Value()/100 then
+        	if IsValidTarget(target, 650, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.EXS.HP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
 		end
 	end
 	if Legendary.Combo.Spells.RS:Value() then 
    		if myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmiteDuel" and Ready(SUMMONER_1) then
-       		if ValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.RSS.HP:Value()/100 then
+       		if IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.RSS.HP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
 		elseif myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmiteDuel" and Ready(SUMMONER_2) then
-        	if ValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.RSS.HP:Value()/100 then
+        	if IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.RSS.HP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
 		end
 	end
 	if Legendary.Combo.Spells.BS:Value() then 
    		if myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_1) then
-       		if ValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.BSS.HP:Value()/100 then
+       		if IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.BSS.HP:Value()/100 then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
 		elseif myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_2) then
-        	if ValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.BSS.HP:Value()/100 then
+        	if IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.BSS.HP:Value()/100 then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
 		end
@@ -639,8 +711,8 @@ function Olaf:Harass()
 	if Legendary.Keys.SpellHarass:Value() == false then return end
 	if target == nil then return end
 	if Legendary.Harass.Q:Value() and Ready(_Q) and myHero.mana/myHero.maxMana >= Legendary.Harass.Mana:Value()/100 then
-		 if target.valid and not target.dead then
-			Control.CastSpell(HK_Q,target:GetPrediction(Q.speed,Q.delay))
+		 if KoreanCanCast(_Q) then
+                KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
 		end
 	end
 	if Legendary.Harass.E:Value() and Ready(_E) and myHero.health/myHero.maxHealth >= Legendary.Harass.Life:Value()/100 and target.distance < 325 then
@@ -694,7 +766,7 @@ function Olaf:Lasthit()
 		if  minion.team == 200 then
 			local Qlevel = myHero:GetSpellData(_Q).level
 			local Qdamage = (({70, 115, 160, 205, 250})[Qlevel] + myHero.bonusDamage)
-			if ValidTarget(minion,950) and myHero.pos:DistanceTo(minion.pos) < 950 and Ready(_Q) and (myHero.mana/myHero.maxMana >= Legendary.Lasthit.Mana:Value()/100 ) and minion.isEnemy then
+			if IsValidTarget(minion,950) and myHero.pos:DistanceTo(minion.pos) < 950 and Ready(_Q) and (myHero.mana/myHero.maxMana >= Legendary.Lasthit.Mana:Value()/100 ) and minion.isEnemy then
 				if Qdamage >= HpPred(minion, 0.5) then
 				local Qpos = minion:GetPrediction(1450, 0.25)
 					Control.CastSpell(HK_Q, Qpos)
@@ -702,7 +774,7 @@ function Olaf:Lasthit()
 			end
 			local Elevel = myHero:GetSpellData(_E).level
 			local Edamage = (({70, 115, 160, 205, 250})[Elevel] + 0.4 * myHero.totalDamage)
-			if ValidTarget(minion,325) and myHero.pos:DistanceTo(minion.pos) < 325 and Ready(_E) and (myHero.health/myHero.maxHealth >= Legendary.Lasthit.Life:Value()/100 ) and minion.isEnemy then
+			if IsValidTarget(minion,325) and myHero.pos:DistanceTo(minion.pos) < 325 and Ready(_E) and (myHero.health/myHero.maxHealth >= Legendary.Lasthit.Life:Value()/100 ) and minion.isEnemy then
 				if Edamage >= HpPred(minion, 0.5) then
 					Control.CastSpell(HK_E,minion.pos)
 				end
@@ -760,8 +832,8 @@ end
 function Olaf:Flee()
 	if target == nil then return end
 	if Legendary.Flee.Q:Value() and Ready(_Q) then
-		 if target.valid and not target.dead then
-			Control.CastSpell(HK_Q,target:GetPrediction(Q.speed,Q.delay))
+		 if KoreanCanCast(_Q) then
+                KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
 		end
 	end
 	if Legendary.Flee.Items.BC:Value() and GetItemSlot(myHero, 3144) >= 1 then 
@@ -791,22 +863,22 @@ function Olaf:Flee()
 	end
 	if Legendary.Flee.Spells.EX:Value() then 
    		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
-       		if ValidTarget(target, 650, true, myHero) then
+       		if IsValidTarget(target, 650, true, myHero) then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
 		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
-        	if ValidTarget(target, 650, true, myHero) then
+        	if IsValidTarget(target, 650, true, myHero) then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
 		end
 	end
 	if Legendary.Flee.Spells.BS:Value() then 
    		if myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_1) then
-       		if ValidTarget(target, 500, true, myHero) then
+       		if IsValidTarget(target, 500, true, myHero) then
             	Control.CastSpell(HK_SUMMONER_1, target)
        		end
 		elseif myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_2) then
-        	if ValidTarget(target, 500, true, myHero) then
+        	if IsValidTarget(target, 500, true, myHero) then
            		 Control.CastSpell(HK_SUMMONER_2, target)
        		end
 		end
@@ -819,9 +891,9 @@ function Olaf:Killsteal()
 	local Qdamage = CalcPhysicalDamage(myHero, target, (({70, 115, 160, 205, 250})[Qlevel] + myHero.bonusDamage))
 	if Legendary.Killsteal.Q:Value() and Ready(_Q) then
 		if Qdamage >= HpPred(target, 1) then
-			if target.valid and not target.dead then
-				Control.CastSpell(HK_Q,target:GetPrediction(Q.speed,Q.delay))
-			end
+			if KoreanCanCast(_Q) then
+                KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
+		end
 		end
 	end
 	local Elevel = myHero:GetSpellData(_E).level
@@ -852,13 +924,13 @@ function Olaf:Killsteal()
 	if Legendary.Killsteal.Spells.IG:Value() then 
 		local IGdamage = 50+20*myHero.levelData.lvl - (target.hpRegen*3)
    		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-       		if ValidTarget(target, 600, true, myHero) then
+       		if IsValidTarget(target, 600, true, myHero) then
 				if IGdamage >= HpPred(target, 1) then
 					Control.CastSpell(HK_SUMMONER_1, target)
 				end
        		end
 		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-        	if ValidTarget(target, 600, true, myHero) then
+        	if IsValidTarget(target, 600, true, myHero) then
 				if IGdamage >= HpPred(target, 1) then
 					Control.CastSpell(HK_SUMMONER_2, target)
 				end
@@ -868,13 +940,13 @@ function Olaf:Killsteal()
 	if Legendary.Killsteal.Spells.BS:Value() then 
 		local BSdamage = 20+8*myHero.levelData.lvl
    		if myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_1) then
-       		if ValidTarget(target, 500, true, myHero) then
+       		if IsValidTarget(target, 500, true, myHero) then
 				if BSdamage >= HpPred(target, 1) then
 					Control.CastSpell(HK_SUMMONER_1, target)
 				end
        		end
 		elseif myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_2) then
-        	if ValidTarget(target, 500, true, myHero) then
+        	if IsValidTarget(target, 500, true, myHero) then
 				if BSdamage >= HpPred(target, 1) then
 					Control.CastSpell(HK_SUMMONER_2, target)
 				end
