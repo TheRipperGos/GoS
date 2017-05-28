@@ -601,6 +601,7 @@ local minion = nil
 end
 
 function Caitlyn:Lasthit()
+	if Legendary.Lasthit.Q:Value() == false then return end
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
 		if minion.team == 200 then
