@@ -248,89 +248,6 @@ local function GetEnemyHeroes()
     return _EnemyHeroes
 end
 
-local SmiteTable = {
-	SRU_Baron = "Baron",
-	SRU_RiftHerald = "Herald",
-	SRU_Dragon_Water = "Ocean",
-	SRU_Dragon_Fire = "Infernal",
-	SRU_Dragon_Earth = "Mountain",
-	SRU_Dragon_Air = "Cloud",
-	SRU_Dragon_Elder = "Elder",
-	SRU_Blue = "Blue",
-	SRU_Red = "Red",
-	SRU_Gromp = "Gromp",
-	SRU_Murkwolf = "Wolf",
-	SRU_Razorbeak = "Raptor",
-	SRU_Krug = "Krug",
-	SRU_Crab = "Crab",
-}
-
-local SmiteNames = {'SummonerSmite','S5_SummonerSmiteDuel','S5_SummonerSmitePlayerGanker','S5_SummonerSmiteQuick','ItemSmiteAoE'};
-local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
-local mySmiteSlot = 0;
-
-local function GetSmite(smiteSlot)
-	local returnVal = 0;
-	local spellName = myHero:GetSpellData(smiteSlot).name;
-	for i = 1, 5 do
-		if spellName == SmiteNames[i] then
-			returnVal = smiteSlot
-		end
-	end
-	return returnVal;
-end
-
-function OnLoad()
-	mySmiteSlot = GetSmite(SUMMONER_1);
-	if mySmiteSlot == 0 then
-		mySmiteSlot = GetSmite(SUMMONER_2);
-	end
-end
-
-local function AutoSmiteMinion(type,minion)
-	if not type or not Legendary.Clear.Smite[type] then
-		return
-	end
-	if Legendary.Clear.Smite[type]:Value() then
-		if minion.pos2D.onScreen then
-			if mySmiteSlot == SUMMONER_1 then
-				Control.CastSpell(HK_SUMMONER_1,minion)
-			else
-				Control.CastSpell(HK_SUMMONER_2,minion)
-			end
-		end
-	end
-end
-
-function OnDraw()
-if Legendary.Keys.Smite:Value() == false then return end
-if myHero.alive == false then return end
-	if Legendary.Clear.Smite.S:Value() and (mySmiteSlot > 0) then
-		if Legendary.Clear.Smite.S:Value() then
-			local SData = myHero:GetSpellData(mySmiteSlot);
-			for i = 1, Game.MinionCount() do
-				minion = Game.Minion(i);
-				if minion and minion.valid and (minion.team == 300) and minion.visible then
-					if minion.health <= SmiteDamage[myHero.levelData.lvl] then
-						local minionName = minion.charName;
-						if Legendary.Clear.Smite.S:Value() then
-							if mySmiteSlot > 0 then
-								if SData.level > 0 then
-									if (SData.ammo > 0) then
-										if minion.distance <= (500+myHero.boundingRadius+minion.boundingRadius) then
-											AutoSmiteMinion(SmiteTable[minionName], minion);
-										end
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-end
-
 require "DamageLib"
 require "Collision"
 
@@ -421,102 +338,20 @@ function Olaf:Menu()
 					W = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/a/ad/Vicious_Strikes.png",
 					E = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/2/25/Reckless_Swing.png",
 					R = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/6/68/Ragnarok.png",
-					T = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/e/e3/Tiamat_item.png",
-					RH = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/e/e8/Ravenous_Hydra_item.png",
-					TH = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/2/22/Titanic_Hydra_item.png",
-					BC = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/4/44/Bilgewater_Cutlass_item.png",
-					BOTRK = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png",
-					RO = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/0/08/Randuin%27s_Omen_item.png",
-					RG = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/9/9f/Righteous_Glory_item.png",
-					YG = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/4/41/Youmuu%27s_Ghostblade_item.png",
-					QSS = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/f/f9/Quicksilver_Sash_item.png",
-					MS = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/0/0a/Mercurial_Scimitar_item.png",
-					IG = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png",
-					EX = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/4/4a/Exhaust.png",
-					Cleanse = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/9/95/Cleanse.png",
-					S = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/0/05/Smite.png",
-					RS = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/6/69/Challenging_Smite.png",
-					BS = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/0/05/Chilling_Smite.png",
-					Gromp = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/e/e8/GrompSquare.png",
-					Raptor = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/9/94/Crimson_RaptorSquare.png",
-					Wolf = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/d/d6/Greater_Murk_WolfSquare.png",
-					Krug = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/f/fe/Ancient_KrugSquare.png",
-					Blue = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/8/85/Blue_SentinelSquare.png",
-					Red = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/e/e7/Red_BramblebackSquare.png",
-					Crab = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/a/a2/Rift_ScuttlerSquare.png",
-					Cloud = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/4/47/Cloud_DrakeSquare.png",
-					Infernal = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/a/a0/Infernal_DrakeSquare.png",
-					Mountain = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/0/00/Mountain_DrakeSquare.png",
-					Ocean = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/5/55/Ocean_DrakeSquare.png",
-					Elder = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/3/34/Elder_DragonSquare.png",
-					Herald = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/c/c3/Rift_HeraldSquare.png",
-					Baron = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/3/38/Baron_NashorSquare.png",
 					}
 	-- Keys --
-	Legendary.Keys:MenuElement({id = "Smite", name = "Smite Usage", key = 77, toggle = true})
 	Legendary.Keys:MenuElement({id = "SpellClear", name = "Spell Usage (Clear)", key = 65, toggle = true})
 	Legendary.Keys:MenuElement({id = "SpellHarass", name = "Spell Usage (Harass)", key = 83, toggle = true})
 	-- Combo --
 	Legendary.Combo:MenuElement({id = "Q", name = "[Q] Undertow", value = true, leftIcon = Icon.Q})
 	Legendary.Combo:MenuElement({id = "W", name = "[W] Vicious Strikes", value = true, leftIcon = Icon.W})
 	Legendary.Combo:MenuElement({id = "E", name = "[E] Reckless Swing", value = true, leftIcon = Icon.E})
-	Legendary.Combo:MenuElement({type = MENU, id = "Items", name = "Items"})
-	Legendary.Combo.Items:MenuElement({id = "T", name = "Tiamat", value = true, leftIcon = Icon.T})
-	Legendary.Combo.Items:MenuElement({id = "RH", name = "Ravenous Hydra", value = true, leftIcon = Icon.RH})
-	Legendary.Combo.Items:MenuElement({id = "TH", name = "Titanic Hydra", value = true, leftIcon = Icon.TH})
-	Legendary.Combo.Items:MenuElement({id = "BC", name = "Bilgewater Cutlass", value = true, leftIcon = Icon.BC})
-	Legendary.Combo.Items:MenuElement({type = MENU, id = "BCS", name = "Settings"})
-	Legendary.Combo.Items.BCS:MenuElement({id = "HP", name = "Max HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items.BCS:MenuElement({id = "EHP", name = "Max Enemy HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items:MenuElement({id = "BOTRK", name = "Blade of the Ruined King", value = true, leftIcon = Icon.BOTRK})
-	Legendary.Combo.Items:MenuElement({type = MENU, id = "BOTRKS", name = "Settings"})
-	Legendary.Combo.Items.BOTRKS:MenuElement({id = "HP", name = "Max HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items.BOTRKS:MenuElement({id = "EHP", name = "Max Enemy HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items:MenuElement({id = "RO", name = "Randuin's Omen", value = true, leftIcon = Icon.RO})
-	Legendary.Combo.Items:MenuElement({type = MENU, id = "ROS", name = "Settings"})
-	Legendary.Combo.Items.ROS:MenuElement({id = "HP", name = "Max HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items.ROS:MenuElement({id = "EHP", name = "Max Enemy HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items:MenuElement({id = "RG", name = "Righteous Glory", value = true, leftIcon = Icon.RG})
-	Legendary.Combo.Items:MenuElement({type = MENU, id = "RGS", name = "Settings"})
-	Legendary.Combo.Items.RGS:MenuElement({id = "ED", name = "Enemy Distance", value = 1000, min = 400, max = 2500, step = 25})
-	Legendary.Combo.Items:MenuElement({id = "YG", name = "Youmuu's Ghostblade", value = true, leftIcon = Icon.YG})
-	Legendary.Combo.Items:MenuElement({type = MENU, id = "YGS", name = "Settings"})
-	Legendary.Combo.Items.YGS:MenuElement({id = "ED", name = "Enemy Distance", value = 1000, min = 400, max = 2500, step = 25})
-	Legendary.Combo:MenuElement({type = MENU, id = "Spells", name = "Summoner Spells"})
-	Legendary.Combo.Spells:MenuElement({id = "IG", name = "Ignite", value = true, leftIcon = Icon.IG})
-	Legendary.Combo.Spells:MenuElement({type = MENU, id = "IGS", name = "Settings"})
-	Legendary.Combo.Spells.IGS:MenuElement({id = "HP", name = "Enemy HP (%)", value = 40, min = 0, max = 100})
-	Legendary.Combo.Spells:MenuElement({id = "EX", name = "Exhaust", value = true, leftIcon = Icon.EX})
-	Legendary.Combo.Spells:MenuElement({type = MENU, id = "EXS", name = "Settings"})
-	Legendary.Combo.Spells.EXS:MenuElement({id = "HP", name = "Enemy HP (%)", value = 40, min = 0, max = 100})
-	Legendary.Combo.Spells:MenuElement({id = "RS", name = "Challenging Smite", value = true, leftIcon = Icon.RS})
-	Legendary.Combo.Spells:MenuElement({type = MENU, id = "RSS", name = "Settings"})
-	Legendary.Combo.Spells.RSS:MenuElement({id = "HP", name = "Enemy HP (%)", value = 40, min = 0, max = 100})
-	Legendary.Combo.Spells:MenuElement({id = "BS", name = "Chilling Smite", value = true, leftIcon = Icon.BS})
-	Legendary.Combo.Spells:MenuElement({type = MENU, id = "BSS", name = "Settings"})
-	Legendary.Combo.Spells.BSS:MenuElement({id = "HP", name = "Enemy HP (%)", value = 40, min = 0, max = 100})
 	-- Clear --
 	Legendary.Clear:MenuElement({id = "Q", name = "[Q] Undertow", value = true, leftIcon = Icon.Q})
 	Legendary.Clear:MenuElement({id = "W", name = "[W] Vicious Strikes", value = true, leftIcon = Icon.W})
 	Legendary.Clear:MenuElement({id = "E", name = "[E] Reckless Swing", value = true, leftIcon = Icon.E})
 	Legendary.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear (%)", value = 40, min = 0, max = 100})
 	Legendary.Clear:MenuElement({id = "Life", name = "Min Life to [E] Clear (%)", value = 65, min = 0, max = 100})
-	Legendary.Clear:MenuElement({type = MENU, id = "Smite", name = "Smite"})
-	Legendary.Clear.Smite:MenuElement({id = "S", name = "Use Smite", value = true, leftIcon = Icon.S})
-	Legendary.Clear.Smite:MenuElement({id = "Gromp", name = "Gromp", value = false, leftIcon = Icon.Gromp})
-	Legendary.Clear.Smite:MenuElement({id = "Raptor", name = "Crimson Raptor", value = false, leftIcon = Icon.Raptor})
-	Legendary.Clear.Smite:MenuElement({id = "Wolf", name = "Greater Murk Wolf", value = false, leftIcon = Icon.Wolf})
-	Legendary.Clear.Smite:MenuElement({id = "Krug", name = "Ancient Krug", value = false, leftIcon = Icon.Krug})
-	Legendary.Clear.Smite:MenuElement({id = "Blue", name = "Blue Sentinel", value = true, leftIcon = Icon.Blue})
-	Legendary.Clear.Smite:MenuElement({id = "Red", name = "Red Brambleback", value = true, leftIcon = Icon.Red})
-	Legendary.Clear.Smite:MenuElement({id = "Crab", name = "Rift Scuttler", value = false, leftIcon = Icon.Crab})
-	Legendary.Clear.Smite:MenuElement({id = "Cloud", name = "Cloud Drake", value = true, leftIcon = Icon.Cloud})
-	Legendary.Clear.Smite:MenuElement({id = "Infernal", name = "Infernal Drake", value = true, leftIcon = Icon.Infernal})
-	Legendary.Clear.Smite:MenuElement({id = "Mountain", name = "Mountain Drake", value = true, leftIcon = Icon.Mountain})
-	Legendary.Clear.Smite:MenuElement({id = "Ocean", name = "Ocean Drake", value = true, leftIcon = Icon.Ocean})
-	Legendary.Clear.Smite:MenuElement({id = "Elder", name = "Elder Dragon", value = true, leftIcon = Icon.Elder})
-	Legendary.Clear.Smite:MenuElement({id = "Herald", name = "Rift Herald", value = true, leftIcon = Icon.Herald})
-	Legendary.Clear.Smite:MenuElement({id = "Baron", name = "Baron Nashor", value = true, leftIcon = Icon.Baron})
 	-- Lasthit --
 	Legendary.Lasthit:MenuElement({id = "Q", name = "[Q] Undertow", value = true, leftIcon = Icon.Q})
 	Legendary.Lasthit:MenuElement({id = "E", name = "[E] Reckless Swing", value = true, leftIcon = Icon.E})
@@ -529,29 +364,11 @@ function Olaf:Menu()
 	Legendary.Harass:MenuElement({id = "Life", name = "Min Life to [E] Harass (%)", value = 65, min = 0, max = 100})
 	-- Flee --
 	Legendary.Flee:MenuElement({id = "Q", name = "[Q] Undertow", value = true, leftIcon = Icon.Q})
-	Legendary.Flee:MenuElement({type = MENU, id = "Items", name = "Items"})
-	Legendary.Flee.Items:MenuElement({id = "BC", name = "Bilgewater Cutlass", value = true, leftIcon = Icon.BC})
-	Legendary.Flee.Items:MenuElement({id = "BOTRK", name = "Blade of the Ruined King", value = true, leftIcon = Icon.BOTRK})
-	Legendary.Flee.Items:MenuElement({id = "RO", name = "Randuin's Omen", value = true, leftIcon = Icon.RO})
-	Legendary.Flee.Items:MenuElement({id = "RG", name = "Righteous Glory", value = true, leftIcon = Icon.RG})
-	Legendary.Flee.Items:MenuElement({id = "YG", name = "Youmuu's Ghostblade", value = true, leftIcon = Icon.YG})
-	Legendary.Flee:MenuElement({type = MENU, id = "Spells", name = "Summoner Spells"})
-	Legendary.Flee.Spells:MenuElement({id = "EX", name = "Exhaust", value = true, leftIcon = Icon.EX})
-	Legendary.Flee.Spells:MenuElement({id = "BS", name = "Chilling Smite", value = true, leftIcon = Icon.BS})
 	-- Killsteal -- 
 	Legendary.Killsteal:MenuElement({id = "Q", name = "[Q] Undertow", value = true, leftIcon = Icon.Q})
 	Legendary.Killsteal:MenuElement({id = "E", name = "[E] Reckless Swing", value = true, leftIcon = Icon.E})
-	Legendary.Killsteal:MenuElement({type = MENU, id = "Items", name = "Items"})
-	Legendary.Killsteal.Items:MenuElement({id = "BC", name = "Bilgewater Cutlass", value = true, leftIcon = Icon.BC})
-	Legendary.Killsteal.Items:MenuElement({id = "BOTRK", name = "Blade of the Ruined King", value = true, leftIcon = Icon.BOTRK})
-	Legendary.Killsteal:MenuElement({type = MENU, id = "Spells", name = "Summoner Spells"})
-	Legendary.Killsteal.Spells:MenuElement({id = "IG", name = "Ignite", value = true, leftIcon = Icon.IG})
-	Legendary.Killsteal.Spells:MenuElement({id = "BS", name = "Chilling Smite", value = true, leftIcon = Icon.BS})
 	-- Cleanse --
 	Legendary.Cleanse:MenuElement({id = "R", name = "[R] Ragnarok", value = true, leftIcon = Icon.R})
-	Legendary.Cleanse:MenuElement({id = "Cleanse", name = "Cleanse", value = true, leftIcon = Icon.Cleanse})
-	Legendary.Cleanse:MenuElement({id = "QSS", name = "Quicksilver Sash", value = true, leftIcon = Icon.QSS})
-	Legendary.Cleanse:MenuElement({id = "MS", name = "Mercurial Scimitar", value = true, leftIcon = Icon.MS})
 	Legendary.Cleanse:MenuElement({id = "Stun", name = "Stun", value = true, leftIcon = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/8/8d/Gold_Card.png"})
 	Legendary.Cleanse:MenuElement({id = "Silence", name = "Silence", value = false, leftIcon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/3/3b/Feral_Scream.png"})
 	Legendary.Cleanse:MenuElement({id = "Taunt", name = "Taunt", value = true, leftIcon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/9/92/Shadow_Dash.png"})
@@ -571,7 +388,6 @@ function Olaf:Menu()
 	Legendary.Drawing:MenuElement({id = "ColorQ", name = "Color", color = Draw.Color(255, 0, 0, 255)})
 	Legendary.Drawing:MenuElement({id = "DrawE", name = "Draw [E] Range", value = true, leftIcon = Icon.E})
 	Legendary.Drawing:MenuElement({id = "ColorE", name = "Color", color = Draw.Color(255, 0, 0, 255)})
-	Legendary.Drawing:MenuElement({id = "Smite", name = "Smite Status", value = true})
 	Legendary.Drawing:MenuElement({id = "DrawClear", name = "Draw Spell (Clear) Status", value = true})
 	Legendary.Drawing:MenuElement({id = "DrawHarass", name = "Draw Spell (Harass) Status", value = true})
 	-- Delay --
@@ -617,92 +433,6 @@ function Olaf:Combo()
 	if Legendary.Combo.E:Value() and Ready(_E) and target.distance < 325 then
 		 if target.valid and not target.dead then
 			Control.CastSpell(HK_E,target)
-		end
-	end
-	-- Items
-	if Legendary.Combo.Items.T:Value() and GetItemSlot(myHero, 3077) >= 1 and myHero.attackData.state == STATE_WINDDOWN then 
-		if Ready(GetItemSlot(myHero, 3077)) and target.distance <= 350 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3077)], target)
-		end 
-	end
-	if Legendary.Combo.Items.RH:Value() and GetItemSlot(myHero, 3074) >= 1 and myHero.attackData.state == STATE_WINDDOWN then 
-		if Ready(GetItemSlot(myHero, 3074)) and target.distance <= 350 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3074)], target)
-		end 
-	end
-	if Legendary.Combo.Items.TH:Value() and GetItemSlot(myHero, 3748) >= 1 and myHero.attackData.state == STATE_WINDDOWN then 
-		if Ready(GetItemSlot(myHero, 3748)) and target.distance <= 550 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3748)], target)
-		end 
-	end
-	if Legendary.Combo.Items.BC:Value() and GetItemSlot(myHero, 3144) >= 1 and (target.health/target.maxHealth <= Legendary.Combo.Items.BCS.EHP:Value() / 100) and (myHero.health/myHero.maxHealth <= Legendary.Combo.Items.BCS.HP:Value() / 100) then 
-		if Ready(GetItemSlot(myHero, 3144)) and target.distance <= 550 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3144)], target)
-		end 
-	end
-	if Legendary.Combo.Items.BOTRK:Value() and GetItemSlot(myHero, 3153) >= 1 and (target.health/target.maxHealth <= Legendary.Combo.Items.BOTRKS.EHP:Value() / 100) and (myHero.health/myHero.maxHealth <= Legendary.Combo.Items.BOTRKS.HP:Value() / 100) then 
-		if Ready(GetItemSlot(myHero, 3153)) and target.distance <= 550 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3153)], target)
-		end 
-	end
-	if Legendary.Combo.Items.RO:Value() and GetItemSlot(myHero, 3143) >= 1 and (target.health/target.maxHealth <= Legendary.Combo.Items.ROS.EHP:Value() / 100) and (myHero.health/myHero.maxHealth <= Legendary.Combo.Items.ROS.HP:Value() / 100) then 
-		if Ready(GetItemSlot(myHero, 3143)) and target.distance <= 500 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3143)])
-		end 
-	end
-	if Legendary.Combo.Items.RG:Value() and GetItemSlot(myHero, 3800) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3800)) and target.distance >= Legendary.Combo.Items.RGS.ED:Value() then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3800)])
-		end 
-	end
-	if Legendary.Combo.Items.YG:Value() and GetItemSlot(myHero, 3142) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3142)) and target.distance >= Legendary.Combo.Items.YGS.ED:Value() then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3142)])
-		end 
-	end
-	-- Spells
-	if Legendary.Combo.Spells.IG:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.IGS.HP:Value()/100 then
-            	Control.CastSpell(HK_SUMMONER_1, target)
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.IGS.HP:Value()/100 then
-           		 Control.CastSpell(HK_SUMMONER_2, target)
-       		end
-		end
-	end
-	if Legendary.Combo.Spells.EX:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 650, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.EXS.HP:Value()/100 then
-            	Control.CastSpell(HK_SUMMONER_1, target)
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 650, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.EXS.HP:Value()/100 then
-           		 Control.CastSpell(HK_SUMMONER_2, target)
-       		end
-		end
-	end
-	if Legendary.Combo.Spells.RS:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmiteDuel" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.RSS.HP:Value()/100 then
-            	Control.CastSpell(HK_SUMMONER_1, target)
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmiteDuel" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.RSS.HP:Value()/100 then
-           		 Control.CastSpell(HK_SUMMONER_2, target)
-       		end
-		end
-	end
-	if Legendary.Combo.Spells.BS:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.BSS.HP:Value()/100 then
-            	Control.CastSpell(HK_SUMMONER_1, target)
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 500, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.BSS.HP:Value()/100 then
-           		 Control.CastSpell(HK_SUMMONER_2, target)
-       		end
 		end
 	end
 end
@@ -802,27 +532,10 @@ function Olaf:Cleanse()
 			or (buff.type == 28 and  Legendary.Cleanse.Fear:Value())
 			or (buff.type == 29 and  Legendary.Cleanse.Knockup:Value())
 			or (buff.type == 30 and  Legendary.Cleanse.Knockback:Value())) then
-				if Legendary.Cleanse.Cleanse:Value() then 
-					if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) and not Ready(_R) then
-						Control.CastSpell(HK_SUMMONER_1)
-					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) and not Ready(_R) then
-						Control.CastSpell(HK_SUMMONER_2)
-					end
-				end
 				if Legendary.Cleanse.R:Value() then
 					if Ready(_R) then
 						Control.CastSpell(HK_R)
 					end
-				end
-				if Legendary.Cleanse.QSS:Value() and GetItemSlot(myHero, 3140) >= 1 then 
-					if Ready(GetItemSlot(myHero, 3140)) then
-						Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3140)])
-					end 
-				end
-				if Legendary.Cleanse.MS:Value() and GetItemSlot(myHero, 3139) >= 1 then 
-					if Ready(GetItemSlot(myHero, 3139)) then
-						Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3139)])
-					end 
 				end
 			end
 		end
@@ -834,53 +547,6 @@ function Olaf:Flee()
 	if Legendary.Flee.Q:Value() and Ready(_Q) then
 		 if KoreanCanCast(_Q) then
                 KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
-		end
-	end
-	if Legendary.Flee.Items.BC:Value() and GetItemSlot(myHero, 3144) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3144)) and target.distance <= 550 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3144)], target)
-		end 
-	end
-	if Legendary.Flee.Items.BOTRK:Value() and GetItemSlot(myHero, 3153) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3153)) and target.distance <= 550 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3153)], target)
-		end 
-	end
-	if Legendary.Flee.Items.RO:Value() and GetItemSlot(myHero, 3143) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3143)) and target.distance <= 500 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3143)])
-		end 
-	end
-	if Legendary.Flee.Items.RG:Value() and GetItemSlot(myHero, 3800) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3800)) and target.distance <= 700 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3800)])
-		end 
-	end
-	if Legendary.Flee.Items.YG:Value() and GetItemSlot(myHero, 3142) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3142)) then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3142)])
-		end 
-	end
-	if Legendary.Flee.Spells.EX:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 650, true, myHero) then
-            	Control.CastSpell(HK_SUMMONER_1, target)
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 650, true, myHero) then
-           		 Control.CastSpell(HK_SUMMONER_2, target)
-       		end
-		end
-	end
-	if Legendary.Flee.Spells.BS:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 500, true, myHero) then
-            	Control.CastSpell(HK_SUMMONER_1, target)
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 500, true, myHero) then
-           		 Control.CastSpell(HK_SUMMONER_2, target)
-       		end
 		end
 	end
 end
@@ -905,68 +571,12 @@ function Olaf:Killsteal()
 			end
 		end
 	end
-	if Legendary.Killsteal.Items.BC:Value() and GetItemSlot(myHero, 3144) >= 1 then
-		local BCdamage = CalcMagicalDamage(myHero, target, 100)
-		if Ready(GetItemSlot(myHero, 3144)) and target.distance <= 550 then
-			if BCdamage >= HpPred(target, 1) then
-				Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3144)], target)
-			end
-		end 
-	end
-	if Legendary.Killsteal.Items.BOTRK:Value() and GetItemSlot(myHero, 3153) >= 1 then 
-		local BOTRKdamage = CalcPhysicalDamage(myHero, target, target.maxHealth*0.1)
-		if Ready(GetItemSlot(myHero, 3153)) and target.distance <= 550 then
-			if BOTRKdamage >= HpPred(target, 1) then
-				Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3153)], target)
-			end
-		end 
-	end
-	if Legendary.Killsteal.Spells.IG:Value() then 
-		local IGdamage = 50+20*myHero.levelData.lvl - (target.hpRegen*3)
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 600, true, myHero) then
-				if IGdamage >= HpPred(target, 1) then
-					Control.CastSpell(HK_SUMMONER_1, target)
-				end
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 600, true, myHero) then
-				if IGdamage >= HpPred(target, 1) then
-					Control.CastSpell(HK_SUMMONER_2, target)
-				end
-       		end
-		end
-	end
-	if Legendary.Killsteal.Spells.BS:Value() then 
-		local BSdamage = 20+8*myHero.levelData.lvl
-   		if myHero:GetSpellData(SUMMONER_1).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 500, true, myHero) then
-				if BSdamage >= HpPred(target, 1) then
-					Control.CastSpell(HK_SUMMONER_1, target)
-				end
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "S5_SummonerSmitePlayerGanker" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 500, true, myHero) then
-				if BSdamage >= HpPred(target, 1) then
-					Control.CastSpell(HK_SUMMONER_2, target)
-				end
-       		end
-		end
-	end
 end
 
 function Olaf:Draw()
 	if myHero.dead then return end
 	if Legendary.Drawing.DrawQ:Value() and Ready(_Q) then Draw.Circle(myHero.pos, 1000, 3, Legendary.Drawing.ColorQ:Value()) end
 	if Legendary.Drawing.DrawE:Value() and Ready(_E) then Draw.Circle(myHero.pos, 325, 3, Legendary.Drawing.ColorE:Value()) end
-	if Legendary.Drawing.Smite:Value() then
-		local textPos = myHero.pos:To2D()
-		if Legendary.Keys.Smite:Value() == true then
-			Draw.Text("Smite Status: On", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000)) 
-		elseif Legendary.Keys.Smite:Value() == false then
-			Draw.Text("Smite Status: Off", 20, textPos.x - 80, textPos.y + 40, Draw.Color(255, 000, 255, 000)) 
-		end
-	end
 	if Legendary.Drawing.DrawClear:Value() then
 		local textPos = myHero.pos:To2D()
 		if Legendary.Keys.SpellClear:Value() == true then
@@ -985,4 +595,4 @@ function Olaf:Draw()
 	end
 end
 
-if _G[myHero.charName]() then print("Thanks for using Legendary " ..myHero.charName.. " v1.0") end
+if _G[myHero.charName]() then print("Thanks for using Legendary " ..myHero.charName.. " v1.2") end
