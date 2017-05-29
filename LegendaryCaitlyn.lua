@@ -455,7 +455,7 @@ function Caitlyn:Combo()
 			CastSpellMM(HK_R,target.pos,Rrange,0)
 		end
 	end
-	if Legendary.Combo.EQ:Value() and Ready(_E) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 775 and AAdmg*2 <= HpPred(target, 1) then
+	if Legendary.Combo.EQ:Value() and Ready(_E) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 775 then
 		 if KoreanCanCast(_E) and Ready(_E) then
                 KoreanCast(HK_E, KoreanPred(target, _E), Legendary.AS.EAS:Value())
 			if KoreanCanCast(_Q) and Ready(_Q) then
@@ -463,7 +463,7 @@ function Caitlyn:Combo()
 			end
 		end
 	end
-    if Legendary.Combo.Q:Value() and Ready(_Q) and AAdmg <= HpPred(target, 1) then
+    if Legendary.Combo.Q:Value() and Ready(_Q) then
 		 if KoreanCanCast(_Q) then
                 KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
 		end
@@ -580,7 +580,7 @@ function Caitlyn:Killsteal()
 	if Legendary.Killsteal.Q:Value() and Ready(_Q) then
 		local Qlevel = myHero:GetSpellData(_Q).level
 		local Qdamage = CalcPhysicalDamage(myHero, target, (({30, 70, 110, 150, 190})[Qlevel] + ({1.3, 1.4, 1.5, 1.6, 1.7})[Qlevel] * myHero.totalDamage))
-		if Qdamage >= HpPred(target, 1) and AAdmg*2 <= HpPred(target, 1) then
+		if Qdamage >= HpPred(target, 1) then
 			if KoreanCanCast(_Q) then
                 KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
 			end
