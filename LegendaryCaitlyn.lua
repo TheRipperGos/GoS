@@ -500,7 +500,7 @@ function Caitlyn:Combo()
 			CastSpellMM(HK_R,target.pos,Rrange,0)
 		end
 	end
-	if Legendary.Combo.EQ:Value() and Ready(_E) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 775 and not CalcPhysicalDamage(myHero, target, myHero.totalDamage * 2) >= HpPred(target, 1) then
+	if Legendary.Combo.EQ:Value() and Ready(_E) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 775 and not CalcPhysicalDamage(myHero, target, myHero.totalDamage) >= HpPred(target, 1) then
 		 if KoreanCanCast(_E) and Ready(_E) then
                 KoreanCast(HK_E, KoreanPred(target, _E), Legendary.AS.EAS:Value())
 			if KoreanCanCast(_Q) and Ready(_Q) then
@@ -518,7 +518,7 @@ function Caitlyn:Combo()
                 KoreanCast(HK_E, KoreanPred(target, _E), Legendary.AS.EAS:Value())
 		end
 	end
-	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and not CalcPhysicalDamage(myHero, target, myHero.totalDamage * 2) >= HpPred(target, 1) then
+	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 then
 		 if target.valid and not target.dead then
 			Control.CastSpell(HK_W,target)
 		end
