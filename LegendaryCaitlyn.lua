@@ -386,6 +386,7 @@ function Caitlyn:Menu()
 	-- Combo --
 	Legendary.Combo:MenuElement({id = "Q", name = "[Q] Piltover Peacemaker", value = true, leftIcon = Icon.Q})
 	Legendary.Combo:MenuElement({id = "W", name = "[W] Yordle Snap Trap", value = true, leftIcon = Icon.W})
+	Legendary.Combo:MenuElement({id = "WA", name = "Min Stacks to [W] in combo", value = 2, min = 1, max = 3})
 	Legendary.Combo:MenuElement({id = "E", name = "[E] 90 Caliber Net", value = true, leftIcon = Icon.E})
 	Legendary.Combo:MenuElement({id = "R", name = "[R] Ace in the Hole", value = true, leftIcon = Icon.R})
 	Legendary.Combo:MenuElement({id = "EQ", name = "[E]+[Q] Combo", value = true})
@@ -518,7 +519,7 @@ function Caitlyn:Combo()
                 KoreanCast(HK_E, KoreanPred(target, _E), Legendary.AS.EAS:Value())
 		end
 	end
-	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 then
+	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and myHero:GetSpellData(_W).ammo >= Legendary.Combo.WA:Value() then
 		 if target.valid and not target.dead then
 			Control.CastSpell(HK_W,target)
 		end
