@@ -734,18 +734,19 @@ end
 
 function Caitlyn:Killsteal()
 	if target == nil then return end
+	local AAdmg = CalcPhysicalDamage(myHero, target, myHero.totalDamage)
 	if Legendary.Killsteal.R:Value() and Ready(_R) then
 		local Rlevel = myHero:GetSpellData(_R).level
 		local Rrange = (({2000,2500,3000})[Rlevel])
 		local Rdamage = CalcPhysicalDamage(myHero, target, (({250, 475, 700})[Rlevel] + 2 * myHero.totalDamage))
-		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1500 then
+		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1500 and Rdamage * 0.5 <= HpPred(target, 1) then
 			CastSpellMM(HK_R,target.pos,Rrange,0)
 		end
 	end
 	if Legendary.Killsteal.Q:Value() and Ready(_Q) then
 		local Qlevel = myHero:GetSpellData(_Q).level
 		local Qdamage = CalcPhysicalDamage(myHero, target, (({30, 70, 110, 150, 190})[Qlevel] + ({1.3, 1.4, 1.5, 1.6, 1.7})[Qlevel] * myHero.totalDamage))
-		if Qdamage >= HpPred(target, 1) and not CalcPhysicalDamage(myHero, target, myHero.totalDamage * 2) >= HpPred(target, 1) then
+		if Qdamage >= HpPred(target, 1) and AAdmg*2 <= HpPred(target, 1) then
 			if KoreanCanCast(_Q) then
                 KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
 			end
