@@ -510,7 +510,7 @@ function Caitlyn:Combo()
 		local Rlevel = myHero:GetSpellData(_R).level
 		local Rrange = (({2000,2500,3000})[Rlevel])
 		local Rdamage = CalcPhysicalDamage(myHero, target, (({250, 475, 700})[Rlevel] + 2 * myHero.totalDamage))
-		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1300 and not Rdamage * 0.5 >= HpPred(target, 1) then
+		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1100 and not Rdamage * 0.5 >= HpPred(target, 1) then
 			CastSpellMM(HK_R,target.pos,Rrange,0)
 		end
 	end
