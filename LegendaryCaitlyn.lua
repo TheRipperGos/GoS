@@ -505,6 +505,7 @@ end
 function Caitlyn:Combo()
     if target == nil then return end
 	-- Combo
+	local AAdmg = CalcPhysicalDamage(myHero, target, myHero.totalDamage)
 	if Legendary.Combo.R:Value() and Ready(_R) then
 		local Rlevel = myHero:GetSpellData(_R).level
 		local Rrange = (({2000,2500,3000})[Rlevel])
@@ -513,7 +514,7 @@ function Caitlyn:Combo()
 			CastSpellMM(HK_R,target.pos,Rrange,0)
 		end
 	end
-	if Legendary.Combo.EQ:Value() and Ready(_E) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 775 and not CalcPhysicalDamage(myHero, target, myHero.totalDamage) >= HpPred(target, 1) then
+	if Legendary.Combo.EQ:Value() and Ready(_E) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 775 and AAdmg*2 <= HpPred(target, 1) then
 		 if KoreanCanCast(_E) and Ready(_E) then
                 KoreanCast(HK_E, KoreanPred(target, _E), Legendary.AS.EAS:Value())
 			if KoreanCanCast(_Q) and Ready(_Q) then
@@ -521,7 +522,7 @@ function Caitlyn:Combo()
 			end
 		end
 	end
-    if Legendary.Combo.Q:Value() and Ready(_Q) and not CalcPhysicalDamage(myHero, target, myHero.totalDamage * 2) >= HpPred(target, 1) then
+    if Legendary.Combo.Q:Value() and Ready(_Q) and AAdmg <= HpPred(target, 1) then
 		 if KoreanCanCast(_Q) then
                 KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
 		end
@@ -536,7 +537,7 @@ function Caitlyn:Combo()
 			Control.CastSpell(HK_W,target)
 		end
 	end
-	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and CountEnemys(1500) >= Legendary.Combo.WI:Value() then
+	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and CountEnemys(1500) >= Legendary.Combo.WI:Value() and myHero:GetSpellData(_W).ammo >= 1 then
 		 if target.valid and not target.dead then
 			Control.CastSpell(HK_W,target)
 		end
@@ -677,6 +678,7 @@ function Caitlyn:Cleanse()
 end
 
 function Caitlyn:AutoW()
+	if myHero:GetSpellData(_W).ammo == 0 then return end
 	if target == nil then return end
 	for i = 0, target.buffCount do
 	local buff = target:GetBuff(i);
@@ -736,7 +738,7 @@ function Caitlyn:Killsteal()
 		local Rlevel = myHero:GetSpellData(_R).level
 		local Rrange = (({2000,2500,3000})[Rlevel])
 		local Rdamage = CalcPhysicalDamage(myHero, target, (({250, 475, 700})[Rlevel] + 2 * myHero.totalDamage))
-		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 750 and not Rdamage * 0.5 >= HpPred(target, 1) then
+		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 750 and Rdamage * 0.5 <= HpPred(target, 1) then
 			CastSpellMM(HK_R,target.pos,Rrange,0)
 		end
 	end
