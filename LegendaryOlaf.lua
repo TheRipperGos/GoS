@@ -419,7 +419,6 @@ end
 
 function Olaf:Combo()
     if target == nil then return end
-	-- Combo
     if Legendary.Combo.Q:Value() and Ready(_Q) then
 		 if KoreanCanCast(_Q) then
                 KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
