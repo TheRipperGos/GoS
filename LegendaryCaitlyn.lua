@@ -382,14 +382,6 @@ function Caitlyn:Menu()
 					W = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/0/03/Yordle_Snap_Trap.png",
 					E = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/0/0b/90_Caliber_Net.png",
 					R = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/a/aa/Ace_in_the_Hole.png",
-					BC = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/4/44/Bilgewater_Cutlass_item.png",
-					BOTRK = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png",
-					YG = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/4/41/Youmuu%27s_Ghostblade_item.png",
-					QSS = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/f/f9/Quicksilver_Sash_item.png",
-					MS = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/0/0a/Mercurial_Scimitar_item.png",
-					IG = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/f/f4/Ignite.png",
-					EX = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/4/4a/Exhaust.png",
-					Cleanse = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/9/95/Cleanse.png",
 					}
 	-- Keys --
 	Legendary.Keys:MenuElement({id = "SpellClear", name = "Spell Usage (Clear)", key = 65, toggle = true})
@@ -402,25 +394,6 @@ function Caitlyn:Menu()
 	Legendary.Combo:MenuElement({id = "E", name = "[E] 90 Caliber Net", value = true, leftIcon = Icon.E})
 	Legendary.Combo:MenuElement({id = "R", name = "[R] Ace in the Hole", value = true, leftIcon = Icon.R})
 	Legendary.Combo:MenuElement({id = "EQ", name = "[E]+[Q] Combo", value = true})
-	Legendary.Combo:MenuElement({type = MENU, id = "Items", name = "Items"})
-	Legendary.Combo.Items:MenuElement({id = "BC", name = "Bilgewater Cutlass", value = true, leftIcon = Icon.BC})
-	Legendary.Combo.Items:MenuElement({type = MENU, id = "BCS", name = "Settings"})
-	Legendary.Combo.Items.BCS:MenuElement({id = "HP", name = "Max HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items.BCS:MenuElement({id = "EHP", name = "Max Enemy HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items:MenuElement({id = "BOTRK", name = "Blade of the Ruined King", value = true, leftIcon = Icon.BOTRK})
-	Legendary.Combo.Items:MenuElement({type = MENU, id = "BOTRKS", name = "Settings"})
-	Legendary.Combo.Items.BOTRKS:MenuElement({id = "HP", name = "Max HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items.BOTRKS:MenuElement({id = "EHP", name = "Max Enemy HP (%)", value = 70, min = 0, max = 100})
-	Legendary.Combo.Items:MenuElement({id = "YG", name = "Youmuu's Ghostblade", value = true, leftIcon = Icon.YG})
-	Legendary.Combo.Items:MenuElement({type = MENU, id = "YGS", name = "Settings"})
-	Legendary.Combo.Items.YGS:MenuElement({id = "ED", name = "Enemy Distance", value = 1000, min = 400, max = 2500, step = 25})
-	Legendary.Combo:MenuElement({type = MENU, id = "Spells", name = "Summoner Spells"})
-	Legendary.Combo.Spells:MenuElement({id = "IG", name = "Ignite", value = true, leftIcon = Icon.IG})
-	Legendary.Combo.Spells:MenuElement({type = MENU, id = "IGS", name = "Settings"})
-	Legendary.Combo.Spells.IGS:MenuElement({id = "HP", name = "Enemy HP (%)", value = 40, min = 0, max = 100})
-	Legendary.Combo.Spells:MenuElement({id = "EX", name = "Exhaust", value = true, leftIcon = Icon.EX})
-	Legendary.Combo.Spells:MenuElement({type = MENU, id = "EXS", name = "Settings"})
-	Legendary.Combo.Spells.EXS:MenuElement({id = "HP", name = "Enemy HP (%)", value = 40, min = 0, max = 100})
 	-- Clear --
 	Legendary.Clear:MenuElement({id = "Q", name = "[Q] Piltover Peacemaker", value = true, leftIcon = Icon.Q})
 	Legendary.Clear:MenuElement({id = "Mana", name = "Min Mana to [Q] Clear (%)", value = 40, min = 0, max = 100})
@@ -434,38 +407,9 @@ function Caitlyn:Menu()
 	Legendary.W:MenuElement({id = "W", name = "Auto [W] if CC", value = true, leftIcon = Icon.W})
 	-- Flee --
 	Legendary.Flee:MenuElement({id = "E", name = "[E] Piltover Peacemaker", value = true, leftIcon = Icon.E})
-	Legendary.Flee:MenuElement({type = MENU, id = "Items", name = "Items"})
-	Legendary.Flee.Items:MenuElement({id = "BC", name = "Bilgewater Cutlass", value = true, leftIcon = Icon.BC})
-	Legendary.Flee.Items:MenuElement({id = "BOTRK", name = "Blade of the Ruined King", value = true, leftIcon = Icon.BOTRK})
-	Legendary.Flee.Items:MenuElement({id = "YG", name = "Youmuu's Ghostblade", value = true, leftIcon = Icon.YG})
-	Legendary.Flee:MenuElement({type = MENU, id = "Spells", name = "Summoner Spells"})
-	Legendary.Flee.Spells:MenuElement({id = "EX", name = "Exhaust", value = true, leftIcon = Icon.EX})
 	-- Killsteal -- 
 	Legendary.Killsteal:MenuElement({id = "Q", name = "[Q] Piltover Peacemaker", value = true, leftIcon = Icon.Q})
 	Legendary.Killsteal:MenuElement({id = "R", name = "[R] Ace in the Hole", value = true, leftIcon = Icon.R})
-	Legendary.Killsteal:MenuElement({type = MENU, id = "Items", name = "Items"})
-	Legendary.Killsteal.Items:MenuElement({id = "BC", name = "Bilgewater Cutlass", value = true, leftIcon = Icon.BC})
-	Legendary.Killsteal.Items:MenuElement({id = "BOTRK", name = "Blade of the Ruined King", value = true, leftIcon = Icon.BOTRK})
-	Legendary.Killsteal:MenuElement({type = MENU, id = "Spells", name = "Summoner Spells"})
-	Legendary.Killsteal.Spells:MenuElement({id = "IG", name = "Ignite", value = true, leftIcon = Icon.IG})
-	-- Cleanse --
-	Legendary.Cleanse:MenuElement({id = "Cleanse", name = "Cleanse", value = true, leftIcon = Icon.Cleanse})
-	Legendary.Cleanse:MenuElement({id = "QSS", name = "Quicksilver Sash", value = true, leftIcon = Icon.QSS})
-	Legendary.Cleanse:MenuElement({id = "MS", name = "Mercurial Scimitar", value = true, leftIcon = Icon.MS})
-	Legendary.Cleanse:MenuElement({id = "Stun", name = "Stun", value = true, leftIcon = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/8/8d/Gold_Card.png"})
-	Legendary.Cleanse:MenuElement({id = "Silence", name = "Silence", value = false, leftIcon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/3/3b/Feral_Scream.png"})
-	Legendary.Cleanse:MenuElement({id = "Taunt", name = "Taunt", value = true, leftIcon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/9/92/Shadow_Dash.png"})
-	Legendary.Cleanse:MenuElement({id = "Polimorphy", name = "Polimorphy", value = true, leftIcon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/7/7c/Whimsy.png"})
-	Legendary.Cleanse:MenuElement({id = "Slow", name = "Slow", value = false, leftIcon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/a/aa/Wither.png"})
-	Legendary.Cleanse:MenuElement({id = "Snare", name = "Snare", value = true, leftIcon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/a/a2/Dark_Binding.png"})
-	Legendary.Cleanse:MenuElement({id = "Nearsight", name = "Nearsight", value = false, leftIcon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/e/e5/Smoke_Screen.png"})
-	Legendary.Cleanse:MenuElement({id = "Fear", name = "Fear", value = true, leftIcon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/b/bb/Jack_in_the_Box.png"})
-	Legendary.Cleanse:MenuElement({id = "Charm", name = "Charm", value = true, leftIcon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/0/04/Charm.png"})
-	Legendary.Cleanse:MenuElement({id = "Poison", name = "Poison", value = false, leftIcon = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/5/54/Noxious_Blast.png"})
-	Legendary.Cleanse:MenuElement({id = "Supression", name = "Supression", value = true, leftIcon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/4/4e/Nether_Grasp.png"})
-	Legendary.Cleanse:MenuElement({id = "Blind", name = "Blind", value = true, leftIcon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/c7/Blinding_Dart.png"})
-	Legendary.Cleanse:MenuElement({id = "Knockup", name = "Knockup", value = false, leftIcon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/4/44/Glacial_Fissure.png"})
-	Legendary.Cleanse:MenuElement({id = "Knockback", name = "Knockback", value = false, leftIcon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/2/21/Emperor%27s_Divide.png"})
 	-- Drawings --
 	Legendary.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true, leftIcon = Icon.Q})
 	Legendary.Drawing:MenuElement({id = "ColorQ", name = "Color", color = Draw.Color(255, 0, 0, 255)})
@@ -498,19 +442,16 @@ function Caitlyn:Tick()
 		self:Flee(target)
 	end
 		self:Killsteal(target)
-		self:Cleanse()
 		self:AutoW(target)
 end
 
 function Caitlyn:Combo()
     if target == nil then return end
-	-- Combo
-	local AAdmg = CalcPhysicalDamage(myHero, target, myHero.totalDamage)
 	if Legendary.Combo.R:Value() and Ready(_R) then
 		local Rlevel = myHero:GetSpellData(_R).level
 		local Rrange = (({2000,2500,3000})[Rlevel])
 		local Rdamage = CalcPhysicalDamage(myHero, target, (({250, 475, 700})[Rlevel] + 2 * myHero.totalDamage))
-		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1100 and not Rdamage * 0.5 >= HpPred(target, 1) then
+		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1600 then
 			CastSpellMM(HK_R,target.pos,Rrange,0)
 		end
 	end
@@ -540,45 +481,6 @@ function Caitlyn:Combo()
 	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and CountEnemys(1500) >= Legendary.Combo.WI:Value() and myHero:GetSpellData(_W).ammo >= 1 then
 		 if target.valid and not target.dead then
 			Control.CastSpell(HK_W,target)
-		end
-	end
-	-- Items
-	if Legendary.Combo.Items.BC:Value() and GetItemSlot(myHero, 3144) >= 1 and (target.health/target.maxHealth <= Legendary.Combo.Items.BCS.EHP:Value() / 100) and (myHero.health/myHero.maxHealth <= Legendary.Combo.Items.BCS.HP:Value() / 100) then 
-		if Ready(GetItemSlot(myHero, 3144)) and target.distance <= 550 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3144)], target)
-		end 
-	end
-	if Legendary.Combo.Items.BOTRK:Value() and GetItemSlot(myHero, 3153) >= 1 and (target.health/target.maxHealth <= Legendary.Combo.Items.BOTRKS.EHP:Value() / 100) and (myHero.health/myHero.maxHealth <= Legendary.Combo.Items.BOTRKS.HP:Value() / 100) then 
-		if Ready(GetItemSlot(myHero, 3153)) and target.distance <= 550 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3153)], target)
-		end 
-	end
-	if Legendary.Combo.Items.YG:Value() and GetItemSlot(myHero, 3142) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3142)) and target.distance >= Legendary.Combo.Items.YGS.ED:Value() then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3142)])
-		end 
-	end
-	-- Spells
-	if Legendary.Combo.Spells.IG:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.IGS.HP:Value()/100 then
-            	Control.CastSpell(HK_SUMMONER_1, target)
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 600, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.IGS.HP:Value()/100 then
-           		 Control.CastSpell(HK_SUMMONER_2, target)
-       		end
-		end
-	end
-	if Legendary.Combo.Spells.EX:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 650, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.EXS.HP:Value()/100 then
-            	Control.CastSpell(HK_SUMMONER_1, target)
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 650, true, myHero) and target.health/target.maxHealth <= Legendary.Combo.Spells.EXS.HP:Value()/100 then
-           		 Control.CastSpell(HK_SUMMONER_2, target)
-       		end
 		end
 	end
 end
@@ -636,47 +538,6 @@ function Caitlyn:Lasthit()
 	end
 end
 
-function Caitlyn:Cleanse()
-	for i = 0, myHero.buffCount do
-	local buff = myHero:GetBuff(i);
-		if buff.count > 0 then
-			if ((buff.type == 5 and Legendary.Cleanse.Stun:Value())
-			or (buff.type == 7 and  Legendary.Cleanse.Silence:Value())
-			or (buff.type == 8 and  Legendary.Cleanse.Taunt:Value())
-			or (buff.type == 9 and  Legendary.Cleanse.Polimorphy:Value())
-			or (buff.type == 10 and  Legendary.Cleanse.Slow:Value())
-			or (buff.type == 11 and  Legendary.Cleanse.Snare:Value())
-			or (buff.type == 19 and  Legendary.Cleanse.Nearsight:Value())
-			or (buff.type == 21 and  Legendary.Cleanse.Fear:Value())
-			or (buff.type == 22 and  Legendary.Cleanse.Charm:Value()) 
-			or (buff.type == 23 and  Legendary.Cleanse.Poison:Value()) 
-			or (buff.type == 24 and  Legendary.Cleanse.Supression:Value())
-			or (buff.type == 25 and  Legendary.Cleanse.Blind:Value())
-			or (buff.type == 28 and  Legendary.Cleanse.Fear:Value())
-			or (buff.type == 29 and  Legendary.Cleanse.Knockup:Value())
-			or (buff.type == 30 and  Legendary.Cleanse.Knockback:Value())) then
-				if Legendary.Cleanse.Cleanse:Value() then 
-					if myHero:GetSpellData(SUMMONER_1).name == "SummonerBoost" and Ready(SUMMONER_1) then
-						Control.CastSpell(HK_SUMMONER_1)
-					elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerBoost" and Ready(SUMMONER_2) then
-						Control.CastSpell(HK_SUMMONER_2)
-					end
-				end
-				if Legendary.Cleanse.QSS:Value() and GetItemSlot(myHero, 3140) >= 1 then 
-					if Ready(GetItemSlot(myHero, 3140)) then
-						Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3140)])
-					end 
-				end
-				if Legendary.Cleanse.MS:Value() and GetItemSlot(myHero, 3139) >= 1 then 
-					if Ready(GetItemSlot(myHero, 3139)) then
-						Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3139)])
-					end 
-				end
-			end
-		end
-	end
-end
-
 function Caitlyn:AutoW()
 	if myHero:GetSpellData(_W).ammo == 0 then return end
 	if target == nil then return end
@@ -704,42 +565,15 @@ function Caitlyn:Flee()
                 KoreanCast(HK_E, KoreanPred(target, _E), Legendary.AS.EAS:Value())
 		end
 	end
-	if Legendary.Flee.Items.BC:Value() and GetItemSlot(myHero, 3144) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3144)) and target.distance <= 550 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3144)], target)
-		end 
-	end
-	if Legendary.Flee.Items.BOTRK:Value() and GetItemSlot(myHero, 3153) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3153)) and target.distance <= 550 then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3153)], target)
-		end 
-	end
-	if Legendary.Flee.Items.YG:Value() and GetItemSlot(myHero, 3142) >= 1 then 
-		if Ready(GetItemSlot(myHero, 3142)) then
-			Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3142)])
-		end 
-	end
-	if Legendary.Flee.Spells.EX:Value() then 
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerExhaust" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 650, true, myHero) then
-            	Control.CastSpell(HK_SUMMONER_1, target)
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerExhaust" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 650, true, myHero) then
-           		 Control.CastSpell(HK_SUMMONER_2, target)
-       		end
-		end
-	end
 end
 
 function Caitlyn:Killsteal()
 	if target == nil then return end
-	local AAdmg = CalcPhysicalDamage(myHero, target, myHero.totalDamage)
 	if Legendary.Killsteal.R:Value() and Ready(_R) then
 		local Rlevel = myHero:GetSpellData(_R).level
 		local Rrange = (({2000,2500,3000})[Rlevel])
 		local Rdamage = CalcPhysicalDamage(myHero, target, (({250, 475, 700})[Rlevel] + 2 * myHero.totalDamage))
-		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1500 and Rdamage * 0.5 <= HpPred(target, 1) then
+		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1600 then
 			CastSpellMM(HK_R,target.pos,Rrange,0)
 		end
 	end
@@ -750,38 +584,6 @@ function Caitlyn:Killsteal()
 			if KoreanCanCast(_Q) then
                 KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
 			end
-		end
-	end
-	if Legendary.Killsteal.Items.BC:Value() and GetItemSlot(myHero, 3144) >= 1 then
-		local BCdamage = CalcMagicalDamage(myHero, target, 100)
-		if Ready(GetItemSlot(myHero, 3144)) and target.distance <= 550 then
-			if BCdamage >= HpPred(target, 1) then
-				Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3144)], target)
-			end
-		end 
-	end
-	if Legendary.Killsteal.Items.BOTRK:Value() and GetItemSlot(myHero, 3153) >= 1 then 
-		local BOTRKdamage = CalcPhysicalDamage(myHero, target, target.maxHealth*0.1)
-		if Ready(GetItemSlot(myHero, 3153)) and target.distance <= 550 then
-			if BOTRKdamage >= HpPred(target, 1) then
-				Control.CastSpell(ItemHotKey[GetItemSlot(myHero, 3153)], target)
-			end
-		end 
-	end
-	if Legendary.Killsteal.Spells.IG:Value() then 
-		local IGdamage = 50+20*myHero.levelData.lvl - (target.hpRegen*3)
-   		if myHero:GetSpellData(SUMMONER_1).name == "SummonerDot" and Ready(SUMMONER_1) then
-       		if IsValidTarget(target, 600, true, myHero) then
-				if IGdamage >= HpPred(target, 1) then
-					Control.CastSpell(HK_SUMMONER_1, target)
-				end
-       		end
-		elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerDot" and Ready(SUMMONER_2) then
-        	if IsValidTarget(target, 600, true, myHero) then
-				if IGdamage >= HpPred(target, 1) then
-					Control.CastSpell(HK_SUMMONER_2, target)
-				end
-       		end
 		end
 	end
 end
