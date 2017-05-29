@@ -7,7 +7,6 @@ Legendary:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
 Legendary:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
 Legendary:MenuElement({type = MENU, id = "Lasthit", name = "Lasthit Settings"})
 Legendary:MenuElement({type = MENU, id = "Flee", name = "Flee Settings"})
-Legendary:MenuElement({type = MENU, id = "Cleanse", name = "Cleanse Settings"})
 Legendary:MenuElement({type = MENU, id = "Killsteal", name = "Killsteal Settings"})
 Legendary:MenuElement({type = MENU, id = "W", name = "Misc Settings"})
 Legendary:MenuElement({type = MENU, id = "Drawing", name = "Drawing Settings"})
@@ -406,7 +405,7 @@ function Caitlyn:Menu()
 	-- Auto W --
 	Legendary.W:MenuElement({id = "W", name = "Auto [W] if CC", value = true, leftIcon = Icon.W})
 	-- Flee --
-	Legendary.Flee:MenuElement({id = "E", name = "[E] Piltover Peacemaker", value = true, leftIcon = Icon.E})
+	Legendary.Flee:MenuElement({id = "E", name = "[E] 90 Caliber Net", value = true, leftIcon = Icon.E})
 	-- Killsteal -- 
 	Legendary.Killsteal:MenuElement({id = "Q", name = "[Q] Piltover Peacemaker", value = true, leftIcon = Icon.Q})
 	Legendary.Killsteal:MenuElement({id = "R", name = "[R] Ace in the Hole", value = true, leftIcon = Icon.R})
