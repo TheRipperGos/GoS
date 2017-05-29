@@ -522,7 +522,6 @@ require "DamageLib"
 	Legendary.Heal.Items:MenuElement({id = "RD", name = "Redemption", value = true, leftIcon = Icon.RD})
 	Legendary.Heal.Items:MenuElement({type = MENU, id = "RDS", name = "Settings"})
 	Legendary.Heal.Items.RDS:MenuElement({id = "HP", name = "If my HP less than (%)", value = 30, min = 0, max = 100})
-	Legendary.Heal.Items.RDS:MenuElement({id = "AHP", name = "If ally HP less than (%)", value = 30, min = 0, max = 100})
 	Legendary.Heal:MenuElement({type = MENU, id = "Spells", name = "Summoner Spells"})
 	Legendary.Heal.Spells:MenuElement({id = "Heal", name = "Heal", value = true, leftIcon = Icon.Heal})
 	Legendary.Heal.Spells:MenuElement({type = MENU, id = "HealS", name = "Settings"})
