@@ -356,6 +356,17 @@ local function KoreanCast2(spell, pos, delay)
         DelayAction(function() Control.KeyUp(spell) end, (delay + Game.Latency()) / 1000) -- ˇ ˆ
 end 
 
+local function CountEnemys(range)
+	local heroesCount = 0
+	for i = 1,Game.HeroCount() do
+		local enemy = Game.Hero(i)
+		if  enemy.team ~= myHero.team and enemy.valid and enemy.pos:DistanceTo(myHero.pos) < 1500 then
+		heroesCount = heroesCount + 1
+		end
+	end
+	return heroesCount
+end
+
 class "Caitlyn"
 
 function Caitlyn:__init()
@@ -387,6 +398,7 @@ function Caitlyn:Menu()
 	Legendary.Combo:MenuElement({id = "Q", name = "[Q] Piltover Peacemaker", value = true, leftIcon = Icon.Q})
 	Legendary.Combo:MenuElement({id = "W", name = "[W] Yordle Snap Trap", value = true, leftIcon = Icon.W})
 	Legendary.Combo:MenuElement({id = "WA", name = "Min Stacks to [W] in combo", value = 2, min = 1, max = 3})
+	Legendary.Combo:MenuElement({id = "WI", name = "Ignore Stack Check if X enemies", value = 3, min = 1, max = 5})
 	Legendary.Combo:MenuElement({id = "E", name = "[E] 90 Caliber Net", value = true, leftIcon = Icon.E})
 	Legendary.Combo:MenuElement({id = "R", name = "[R] Ace in the Hole", value = true, leftIcon = Icon.R})
 	Legendary.Combo:MenuElement({id = "EQ", name = "[E]+[Q] Combo", value = true})
@@ -520,6 +532,11 @@ function Caitlyn:Combo()
 		end
 	end
 	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and myHero:GetSpellData(_W).ammo >= Legendary.Combo.WA:Value() then
+		 if target.valid and not target.dead then
+			Control.CastSpell(HK_W,target)
+		end
+	end
+	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and CountEnemys(1500) >= Legendary.Combo.WI:Value() then
 		 if target.valid and not target.dead then
 			Control.CastSpell(HK_W,target)
 		end
