@@ -8,6 +8,7 @@ Legendary:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
 Legendary:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
 Legendary:MenuElement({type = MENU, id = "Lasthit", name = "Lasthit Settings"})
 Legendary:MenuElement({type = MENU, id = "Flee", name = "Flee Settings"})
+Legendary:MenuElement({type = MENU, id = "Cleanse", name = "Cleanse Settings"})
 Legendary:MenuElement({type = MENU, id = "Killsteal", name = "Killsteal Settings"})
 Legendary:MenuElement({type = MENU, id = "Drawing", name = "Drawing Settings"})
 Legendary:MenuElement({type = MENU, id = "AS", name = "CastDelay Settings"})
@@ -492,17 +493,17 @@ function Olaf:Lasthit()
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
 		if  minion.team == 200 then
-			local Qlevel = myHero:GetSpellData(_Q).level
-			local Qdamage = (({70, 115, 160, 205, 250})[Qlevel] + myHero.bonusDamage)
 			if IsValidTarget(minion,950) and myHero.pos:DistanceTo(minion.pos) < 950 and Ready(_Q) and (myHero.mana/myHero.maxMana >= Legendary.Lasthit.Mana:Value()/100 ) and minion.isEnemy then
+				local Qlevel = myHero:GetSpellData(_Q).level
+				local Qdamage = (({70, 115, 160, 205, 250})[Qlevel] + myHero.bonusDamage)
 				if Qdamage >= HpPred(minion, 0.5) then
 				local Qpos = minion:GetPrediction(1450, 0.25)
 					Control.CastSpell(HK_Q, Qpos)
 				end
 			end
-			local Elevel = myHero:GetSpellData(_E).level
-			local Edamage = (({70, 115, 160, 205, 250})[Elevel] + 0.4 * myHero.totalDamage)
 			if IsValidTarget(minion,325) and myHero.pos:DistanceTo(minion.pos) < 325 and Ready(_E) and (myHero.health/myHero.maxHealth >= Legendary.Lasthit.Life:Value()/100 ) and minion.isEnemy then
+				local Elevel = myHero:GetSpellData(_E).level
+				local Edamage = (({70, 115, 160, 205, 250})[Elevel] + 0.4 * myHero.totalDamage)
 				if Edamage >= HpPred(minion, 0.5) then
 					Control.CastSpell(HK_E,minion.pos)
 				end
@@ -551,18 +552,18 @@ end
 
 function Olaf:Killsteal()
 	if target == nil then return end
-	local Qlevel = myHero:GetSpellData(_Q).level
-	local Qdamage = CalcPhysicalDamage(myHero, target, (({70, 115, 160, 205, 250})[Qlevel] + myHero.bonusDamage))
 	if Legendary.Killsteal.Q:Value() and Ready(_Q) then
+		local Qlevel = myHero:GetSpellData(_Q).level
+		local Qdamage = CalcPhysicalDamage(myHero, target, (({70, 115, 160, 205, 250})[Qlevel] + myHero.bonusDamage))
 		if Qdamage >= HpPred(target, 1) then
 			if KoreanCanCast(_Q) then
                 KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
 		end
 		end
 	end
-	local Elevel = myHero:GetSpellData(_E).level
-	local Edamage = (({70, 115, 160, 205, 250})[Elevel] + 0.4 * myHero.totalDamage)
 	if Legendary.Killsteal.E:Value() and Ready(_E) and target.distance < 325 then
+		local Elevel = myHero:GetSpellData(_E).level
+		local Edamage = (({70, 115, 160, 205, 250})[Elevel] + 0.4 * myHero.totalDamage)
 		if target.valid and not target.dead then
 			if Edamage >= HpPred(target, 1) then
 				Control.CastSpell(HK_E,target)
