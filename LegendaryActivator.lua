@@ -185,88 +185,6 @@ local function GetEnemyHeroes()
     return _EnemyHeroes
 end
 
-local SmiteTable = {
-	SRU_Baron = "Baron",
-	SRU_RiftHerald = "Herald",
-	SRU_Dragon_Water = "Ocean",
-	SRU_Dragon_Fire = "Infernal",
-	SRU_Dragon_Earth = "Mountain",
-	SRU_Dragon_Air = "Cloud",
-	SRU_Dragon_Elder = "Elder",
-	SRU_Blue = "Blue",
-	SRU_Red = "Red",
-	SRU_Gromp = "Gromp",
-	SRU_Murkwolf = "Wolf",
-	SRU_Razorbeak = "Raptor",
-	SRU_Krug = "Krug",
-	SRU_Crab = "Crab",
-}
-
-local SmiteNames = {'SummonerSmite','S5_SummonerSmiteDuel','S5_SummonerSmitePlayerGanker','S5_SummonerSmiteQuick','ItemSmiteAoE'};
-local SmiteDamage = {390 , 410 , 430 , 450 , 480 , 510 , 540 , 570 , 600 , 640 , 680 , 720 , 760 , 800 , 850 , 900 , 950 , 1000};
-local mySmiteSlot = 0;
-
-local function GetSmite(smiteSlot)
-	local returnVal = 0;
-	local spellName = myHero:GetSpellData(smiteSlot).name;
-	for i = 1, 5 do
-		if spellName == SmiteNames[i] then
-			returnVal = smiteSlot
-		end
-	end
-	return returnVal;
-end
-
-function OnLoad()
-	mySmiteSlot = GetSmite(SUMMONER_1);
-	if mySmiteSlot == 0 then
-		mySmiteSlot = GetSmite(SUMMONER_2);
-	end
-end
-
-local function AutoSmiteMinion(type,minion)
-	if not type or not Legendary.Clear.Smite[type] then
-		return
-	end
-	if Legendary.Clear.Smite[type]:Value() then
-		if minion.pos2D.onScreen then
-			if mySmiteSlot == SUMMONER_1 then
-				Control.CastSpell(HK_SUMMONER_1,minion)
-			else
-				Control.CastSpell(HK_SUMMONER_2,minion)
-			end
-		end
-	end
-end
-
-function OnDraw()
-if myHero.alive == false then return end
-	if Legendary.Clear.Smite.S:Value() and (mySmiteSlot > 0) then
-		if Legendary.Clear.Smite.S:Value() then
-			local SData = myHero:GetSpellData(mySmiteSlot);
-			for i = 1, Game.MinionCount() do
-				minion = Game.Minion(i);
-				if minion and minion.valid and (minion.team == 300) and minion.visible then
-					if minion.health <= SmiteDamage[myHero.levelData.lvl] then
-						local minionName = minion.charName;
-						if Legendary.Clear.Smite.S:Value() then
-							if mySmiteSlot > 0 then
-								if SData.level > 0 then
-									if (SData.currentCd == 0) then
-										if minion.distance <= (500+myHero.boundingRadius+minion.boundingRadius) then
-											AutoSmiteMinion(SmiteTable[minionName], minion);
-										end
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-end
-
 local function CountEnemys(range)
 	local heroesCount = 0
 	for i = 1,Game.HeroCount() do
@@ -370,20 +288,6 @@ require "DamageLib"
 					S = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/0/05/Smite.png",
 					RS = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/6/69/Challenging_Smite.png",
 					BS = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/0/05/Chilling_Smite.png",
-					Gromp = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/e/e8/GrompSquare.png",
-					Raptor = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/9/94/Crimson_RaptorSquare.png",
-					Wolf = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/d/d6/Greater_Murk_WolfSquare.png",
-					Krug = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/f/fe/Ancient_KrugSquare.png",
-					Blue = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/8/85/Blue_SentinelSquare.png",
-					Red = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/e/e7/Red_BramblebackSquare.png",
-					Crab = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/a/a2/Rift_ScuttlerSquare.png",
-					Cloud = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/4/47/Cloud_DrakeSquare.png",
-					Infernal = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/a/a0/Infernal_DrakeSquare.png",
-					Mountain = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/0/00/Mountain_DrakeSquare.png",
-					Ocean = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/5/55/Ocean_DrakeSquare.png",
-					Elder = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/3/34/Elder_DragonSquare.png",
-					Herald = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/c/c3/Rift_HeraldSquare.png",
-					Baron = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/3/38/Baron_NashorSquare.png",
 					}
 	-- Combo --
 	Legendary.Combo:MenuElement({type = MENU, id = "Items", name = "Items"})
@@ -447,22 +351,6 @@ require "DamageLib"
 	Legendary.Clear:MenuElement({type = MENU, id = "Items", name = "Items"})
 	Legendary.Clear.Items:MenuElement({id = "T", name = "Tiamat", value = true, leftIcon = Icon.T})
 	Legendary.Clear.Items:MenuElement({id = "RH", name = "Ravenous Hydra", value = true, leftIcon = Icon.RH})
-	Legendary.Clear:MenuElement({type = MENU, id = "Smite", name = "Smite"})
-	Legendary.Clear.Smite:MenuElement({id = "S", name = "Use Smite", value = true, leftIcon = Icon.S})
-	Legendary.Clear.Smite:MenuElement({id = "Gromp", name = "Gromp", value = false, leftIcon = Icon.Gromp})
-	Legendary.Clear.Smite:MenuElement({id = "Raptor", name = "Crimson Raptor", value = false, leftIcon = Icon.Raptor})
-	Legendary.Clear.Smite:MenuElement({id = "Wolf", name = "Greater Murk Wolf", value = false, leftIcon = Icon.Wolf})
-	Legendary.Clear.Smite:MenuElement({id = "Krug", name = "Ancient Krug", value = false, leftIcon = Icon.Krug})
-	Legendary.Clear.Smite:MenuElement({id = "Blue", name = "Blue Sentinel", value = true, leftIcon = Icon.Blue})
-	Legendary.Clear.Smite:MenuElement({id = "Red", name = "Red Brambleback", value = true, leftIcon = Icon.Red})
-	Legendary.Clear.Smite:MenuElement({id = "Crab", name = "Rift Scuttler", value = false, leftIcon = Icon.Crab})
-	Legendary.Clear.Smite:MenuElement({id = "Cloud", name = "Cloud Drake", value = true, leftIcon = Icon.Cloud})
-	Legendary.Clear.Smite:MenuElement({id = "Infernal", name = "Infernal Drake", value = true, leftIcon = Icon.Infernal})
-	Legendary.Clear.Smite:MenuElement({id = "Mountain", name = "Mountain Drake", value = true, leftIcon = Icon.Mountain})
-	Legendary.Clear.Smite:MenuElement({id = "Ocean", name = "Ocean Drake", value = true, leftIcon = Icon.Ocean})
-	Legendary.Clear.Smite:MenuElement({id = "Elder", name = "Elder Dragon", value = true, leftIcon = Icon.Elder})
-	Legendary.Clear.Smite:MenuElement({id = "Herald", name = "Rift Herald", value = true, leftIcon = Icon.Herald})
-	Legendary.Clear.Smite:MenuElement({id = "Baron", name = "Baron Nashor", value = true, leftIcon = Icon.Baron})
 	-- Flee --
 	Legendary.Flee:MenuElement({type = MENU, id = "Items", name = "Items"})
 	Legendary.Flee.Items:MenuElement({id = "FQC", name = "Frost Queen's Claim", value = true, leftIcon = Icon.FQC})
