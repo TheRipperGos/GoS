@@ -137,6 +137,7 @@ function MasterYi:Tick()
 		self:Killsteal(target)
 end
 
+LastAA = Game.Timer()
 function MasterYi:Combo()
     if target == nil then return end
     if Legendary.Combo.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 600 then
@@ -145,8 +146,12 @@ function MasterYi:Combo()
 	if Legendary.Combo.R:Value() and Ready(_R) and target.distance < 300 then
 		Control.CastSpell(HK_R)
 	end
-	if Legendary.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 125 and myHero.attackData.state == STATE_WINDDOWN then
+	if Legendary.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 300 and myHero.attackData.state == STATE_WINDDOWN then
 		Control.CastSpell(HK_W)
+		if Game.Timer() - LastAA > 0.2 then
+			LastAA = Game.Timer()
+			Control.Attack(target)
+		end
 	end
 	if Legendary.Combo.E:Value() and Ready(_E) and target.distance < 300 then
 		Control.CastSpell(HK_E)
