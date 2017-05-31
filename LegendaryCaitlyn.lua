@@ -8,7 +8,7 @@ Legendary:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
 Legendary:MenuElement({type = MENU, id = "Lasthit", name = "Lasthit Settings"})
 Legendary:MenuElement({type = MENU, id = "Flee", name = "Flee Settings"})
 Legendary:MenuElement({type = MENU, id = "Killsteal", name = "Killsteal Settings"})
-Legendary:MenuElement({type = MENU, id = "W", name = "Misc Settings"})
+Legendary:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})
 Legendary:MenuElement({type = MENU, id = "Drawing", name = "Drawing Settings"})
 Legendary:MenuElement({type = MENU, id = "AS", name = "CastDelay Settings"})
 
@@ -247,38 +247,6 @@ local function GetEnemyHeroes()
     return _EnemyHeroes
 end
 
-local castSpell = {state = 0, tick = GetTickCount(), casting = GetTickCount() - 1000, mouse = mousePos}
-
-local function CastSpellMM(spell,pos,range,delay)
-local range = range or math.huge
-local delay = delay or 250
-local ticker = GetTickCount()
-	if castSpell.state == 0 and GetDistance(myHero.pos,pos) < range and ticker - castSpell.casting > delay + Game.Latency() then
-		castSpell.state = 1
-		castSpell.mouse = mousePos
-		castSpell.tick = ticker
-	end
-	if castSpell.state == 1 then
-		if ticker - castSpell.tick < Game.Latency() then
-			local castPosMM = pos:ToMM()
-			Control.SetCursorPos(castPosMM.x,castPosMM.y)
-			Control.KeyDown(spell)
-			Control.KeyUp(spell)
-			castSpell.casting = ticker + delay
-			DelayAction(function()
-				if castSpell.state == 1 then
-					Control.SetCursorPos(castSpell.mouse)
-					castSpell.state = 0
-				end
-			end,Game.Latency()/1000)
-		end
-		if ticker - castSpell.casting > Game.Latency() then
-			Control.SetCursorPos(castSpell.mouse)
-			castSpell.state = 0
-		end
-	end
-end
-
 require "DamageLib"
 require "Collision"
 
@@ -388,7 +356,7 @@ function Caitlyn:Menu()
 	-- Combo --
 	Legendary.Combo:MenuElement({id = "Q", name = "[Q] Piltover Peacemaker", value = true, leftIcon = Icon.Q})
 	Legendary.Combo:MenuElement({id = "W", name = "[W] Yordle Snap Trap", value = true, leftIcon = Icon.W})
-	Legendary.Combo:MenuElement({id = "WA", name = "Min Stacks to [W] in combo", value = 2, min = 1, max = 3})
+	Legendary.Combo:MenuElement({id = "WA", name = "Min Stacks to [W] in combo", value = 2, min = 1, max = 5})
 	Legendary.Combo:MenuElement({id = "WI", name = "Ignore Stack Check if X enemies", value = 3, min = 1, max = 5})
 	Legendary.Combo:MenuElement({id = "E", name = "[E] 90 Caliber Net", value = true, leftIcon = Icon.E})
 	Legendary.Combo:MenuElement({id = "R", name = "[R] Ace in the Hole", value = true, leftIcon = Icon.R})
@@ -402,10 +370,11 @@ function Caitlyn:Menu()
 	-- Harass --
 	Legendary.Harass:MenuElement({id = "Q", name = "[Q] Piltover Peacemaker", value = true, leftIcon = Icon.Q})
 	Legendary.Harass:MenuElement({id = "Mana", name = "Min Mana to [Q] Harass (%)", value = 40, min = 0, max = 100})
-	-- Auto W --
-	Legendary.W:MenuElement({id = "W", name = "Auto [W] if CC", value = true, leftIcon = Icon.W})
+	-- Misc --
+	Legendary.Misc:MenuElement({id = "Q", name = "Auto [Q] if enemy is trapped", value = true, leftIcon = Icon.Q})
+	Legendary.Misc:MenuElement({id = "W", name = "Auto [W] if CC", value = true, leftIcon = Icon.W})
 	-- Flee --
-	Legendary.Flee:MenuElement({id = "E", name = "[E] 90 Caliber Net", value = true, leftIcon = Icon.E})
+	Legendary.Flee:MenuElement({id = "E", name = "[E] Piltover Peacemaker", value = true, leftIcon = Icon.E})
 	-- Killsteal -- 
 	Legendary.Killsteal:MenuElement({id = "Q", name = "[Q] Piltover Peacemaker", value = true, leftIcon = Icon.Q})
 	Legendary.Killsteal:MenuElement({id = "R", name = "[R] Ace in the Hole", value = true, leftIcon = Icon.R})
@@ -441,17 +410,20 @@ function Caitlyn:Tick()
 		self:Flee(target)
 	end
 		self:Killsteal(target)
-		self:AutoW(target)
+		self:Auto(target)
 end
 
+LastW = Game.Timer()
 function Caitlyn:Combo()
     if target == nil then return end
 	if Legendary.Combo.R:Value() and Ready(_R) then
 		local Rlevel = myHero:GetSpellData(_R).level
 		local Rrange = (({2000,2500,3000})[Rlevel])
 		local Rdamage = CalcPhysicalDamage(myHero, target, (({250, 475, 700})[Rlevel] + 2 * myHero.totalDamage))
-		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1100 then
-			CastSpellMM(HK_R,target.pos,Rrange,0)
+		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1000 then
+			Control.SetCursorPos(target.pos)
+			Control.KeyDown(HK_R)
+			Control.KeyUp(HK_R)
 		end
 	end
 	if Legendary.Combo.EQ:Value() and Ready(_E) and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 775 then
@@ -473,14 +445,16 @@ function Caitlyn:Combo()
 		end
 	end
 	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and myHero:GetSpellData(_W).ammo >= Legendary.Combo.WA:Value() then
-		 if target.valid and not target.dead then
-			Control.CastSpell(HK_W,target)
-		end
+		if Game.Timer() - LastW > 2 then
+			LastW = Game.Timer()
+			Control.CastSpell(HK_W, target.pos)
+		end 
 	end
 	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and CountEnemys(1500) >= Legendary.Combo.WI:Value() and myHero:GetSpellData(_W).ammo >= 1 then
-		 if target.valid and not target.dead then
-			Control.CastSpell(HK_W,target)
-		end
+		if Game.Timer() - LastW > 2 then
+			LastW = Game.Timer()
+			Control.CastSpell(HK_W, target.pos)
+		end 
 	end
 end
 
@@ -498,7 +472,6 @@ function Caitlyn:Clear()
 if Legendary.Keys.SpellClear:Value() == false then return end
 local ClearQ = Legendary.Clear.Q:Value()
 local ClearMana = Legendary.Clear.Mana:Value()
-local GetEnemyMinions = GetEnemyMinions()
 local minion = nil	
 	if ClearQ and Ready(_Q) and (myHero.mana/myHero.maxMana >= ClearMana / 100) then
 		for i = 1, Game.MinionCount() do
@@ -537,20 +510,31 @@ function Caitlyn:Lasthit()
 	end
 end
 
-function Caitlyn:AutoW()
+function Caitlyn:Auto()
 	if myHero:GetSpellData(_W).ammo == 0 then return end
 	if target == nil then return end
-	for i = 0, target.buffCount do
-	local buff = target:GetBuff(i);
-		if buff.count > 0 then
-			if ((buff.type == 5)
-			or (buff.type == 11)
-			or (buff.type == 24)
-			or (buff.type == 29)) then
-				if Legendary.W.W:Value() and target.distance <= 775 then 
-					if Ready(_W) then
-						Control.CastSpell(HK_W,target)
+	if Legendary.Misc.W:Value() and Ready(_W) and target.distance <= 775 then 
+		for i = 0, target.buffCount do
+		local buff = target:GetBuff(i);
+			if buff.count > 0 then
+				if buff.type == 5 or buff.type == 11 or buff.type == 24 or buff.type == 29 then
+					if buff.type == 11 and buff.owner == myHero then return end
+					if Game.Timer() - LastW > 2 then
+						LastW = Game.Timer()
+						Control.CastSpell(HK_W, target.pos)
 					end 
+				end
+			end
+		end
+	end
+	if Legendary.Misc.Q:Value() and Ready(_Q) then
+		for i = 0, target.buffCount do
+		local buff = target:GetBuff(i);
+			if buff.count > 0 then
+				if buff.type == 11 and buff.owner == myHero then
+					if KoreanCanCast(_Q) then
+						KoreanCast(HK_Q, KoreanPred(target, _Q), Legendary.AS.QAS:Value())
+					end
 				end
 			end
 		end
@@ -572,8 +556,10 @@ function Caitlyn:Killsteal()
 		local Rlevel = myHero:GetSpellData(_R).level
 		local Rrange = (({2000,2500,3000})[Rlevel])
 		local Rdamage = CalcPhysicalDamage(myHero, target, (({250, 475, 700})[Rlevel] + 2 * myHero.totalDamage))
-		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1100 then
-			CastSpellMM(HK_R,target.pos,Rrange,0)
+		if Rdamage * 0.9 >= HpPred(target, 1) and myHero.pos:DistanceTo(target.pos) < Rrange and myHero.pos:DistanceTo(target.pos) > 1300 then
+			Control.SetCursorPos(target.pos:ToMM().x,target.pos:ToMM().y)
+			Control.KeyDown(HK_R)
+			Control.KeyUp(HK_R)
 		end
 	end
 	if Legendary.Killsteal.Q:Value() and Ready(_Q) then
