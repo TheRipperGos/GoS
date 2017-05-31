@@ -445,7 +445,7 @@ function Caitlyn:Combo()
                 KoreanCast(HK_E, KoreanPred(target, _E), Legendary.AS.EAS:Value())
 		end
 	end
-	if Legendary.Combo.EC:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 1200 and myHero.pos:DistanceTo(target.pos) > 700 then
+	if Legendary.Combo.EC:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 100 and myHero.pos:DistanceTo(target.pos) > 750 then
 		if CountEnemys(1300) >= 3 then return end
 		Control.CastSpell(HK_E, myHero.pos:Extended(target.pos, -100))
 	end
