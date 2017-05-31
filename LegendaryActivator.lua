@@ -1,4 +1,5 @@
-local Legendary = MenuElement({type = MENU, id = "Legendary", name = "Legendary Activator", leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..myHero.charName..".png"})
+local Legendary = MenuElement({type = MENU, id = "Legendary", name = "Legendary Activator", leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/ActivatorIcon.png"})
+print("Thank you for using Legendary Activator v1.1 for "..myHero.charName.." ^^")
 
 Legendary:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
 Legendary:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
