@@ -445,13 +445,13 @@ function Caitlyn:Combo()
 		end
 	end
 	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and myHero:GetSpellData(_W).ammo >= Legendary.Combo.WA:Value() then
-		if Game.Timer() - LastW > 2 then
+		if Game.Timer() - LastW > 6 then
 			LastW = Game.Timer()
 			Control.CastSpell(HK_W, target.pos)
 		end 
 	end
 	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and CountEnemys(1500) >= Legendary.Combo.WI:Value() and myHero:GetSpellData(_W).ammo >= 1 then
-		if Game.Timer() - LastW > 2 then
+		if Game.Timer() - LastW > 6 then
 			LastW = Game.Timer()
 			Control.CastSpell(HK_W, target.pos)
 		end 
@@ -519,7 +519,7 @@ function Caitlyn:Auto()
 			if buff.count > 0 then
 				if buff.type == 5 or buff.type == 11 or buff.type == 24 or buff.type == 29 then
 					if buff.type == 11 and buff.owner == myHero then return end
-					if Game.Timer() - LastW > 2 then
+					if Game.Timer() - LastW > 6 then
 						LastW = Game.Timer()
 						Control.CastSpell(HK_W, target.pos)
 					end 
