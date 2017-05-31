@@ -600,4 +600,4 @@ function Caitlyn:Draw()
 	end
 end
 
-if _G[myHero.charName]() then print("Thanks for using Legendary " ..myHero.charName.. " v1.2") end
+if _G[myHero.charName]() then print("Thanks for using Legendary " ..myHero.charName.. " v1.4") end
