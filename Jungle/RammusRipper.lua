@@ -131,7 +131,7 @@ function Rammus:Combo()
     	end
   	if self:IsValidTarget(target,R.range) and not self:HasBuff(myHero, "PowerBall") and myHero.pos:DistanceTo(target.pos) < R.range and self.Menu.Ripper.Combo.R:Value() and self:Ready(_R) then
 	local level = myHero:GetSpellData(_R).level
-	local Rdamage = CalcMagicalDamage(myHero, target, (({65, 130, 195})[level] + 0.3 * myHero.ap))
+	local Rdamage = CalcMagicalDamage(myHero, target, (({40, 80, 120})[level] + 0.3 * myHero.ap))
 	if Rdamage >= (self:HpPred(target,1) + target.hpRegen * 2) /  self.Menu.Ripper.Combo.XR:Value() then
 	Control.CastSpell(HK_R)
       	end
@@ -233,7 +233,7 @@ function Rammus:KS()
   	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(R.range, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(R.range,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
 	if self:IsValidTarget(target,R.range) and not self:HasBuff(myHero, "PowerBall") and myHero.pos:DistanceTo(target.pos) < R.range and self.Menu.Ripper.KS.R:Value() and self:Ready(_R) then
     	local level = myHero:GetSpellData(_R).level
-    	local Rdamage = CalcMagicalDamage(myHero, target, (({65, 130, 195})[level] + 0.3 * myHero.ap))
+    	local Rdamage = CalcMagicalDamage(myHero, target, (({40, 80, 120})[level] + 0.3 * myHero.ap))
 	if Rdamage >= self:HpPred(target,1) + target.hpRegen * 2 then
   	Control.CastSpell(HK_R)
 	end
