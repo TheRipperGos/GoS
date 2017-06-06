@@ -335,6 +335,6 @@ Callback.Add("Load", function()
 		print("Romanov "..myHero.charName.." "..ScriptVersion.." Loaded")
 		print("PM me for suggestions/fix problems")
 		print("Discord: Romanov#6333")
-	else print ("Romanov AIO doens't support "..myHero.charName.." shutting down...") return
+	else print ("Romanov doens't support "..myHero.charName.." shutting down...") return
 	end
 end)
