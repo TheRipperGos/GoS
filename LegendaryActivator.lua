@@ -14,7 +14,7 @@ local function Ready(spell)
 end
 
 function LegendaryTarget(range)
-	if _G.SDK then return _G.SDK.TargetSelector:GetTarget(5500, _G.SDK.DAMAGE_TYPE_PHYSICAL) elseif _G.GOS then return _G.GOS:GetTarget(5500,"AD")
+	if _G.SDK then return _G.SDK.TargetSelector:GetTarget(5500, _G.SDK.DAMAGE_TYPE_PHYSICAL) elseif _G.EOWLoaded then return EOW:GetTarget(5500) elseif _G.GOS then return _G.GOS:GetTarget(5500,"AD")
 	end
 end
 
@@ -438,9 +438,9 @@ require "DamageLib"
 Callback.Add("Tick", function() Tick() end)
 function Tick()
 	target = LegendaryTarget(5500)
-    if (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO]) or (_G.GOS and _G.GOS:GetMode() == "Combo") then
+    if (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO]) or (_G.GOS and _G.GOS:GetMode() == "Combo") or (_G.EOWLoaded and EOW.CurrentMode == 1) then
         Combo(target)
-    elseif (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR]) or (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR]) or (_G.GOS and _G.GOS:GetMode() == "Clear") then
+    elseif (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR]) or (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR]) or (_G.GOS and _G.GOS:GetMode() == "Clear") or (_G.EOWLoaded and EOW.CurrentMode == 4) then
 		Clear()
 	elseif (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE]) or (_G.GOS and _G.GOS:GetMode() == "Flee") then
 		Flee(target)
