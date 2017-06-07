@@ -360,8 +360,8 @@ function Caitlyn:Menu()
 	Legendary.Combo:MenuElement({id = "W", name = "[W] Yordle Snap Trap", value = true, leftIcon = Icon.W})
 	Legendary.Combo:MenuElement({id = "WA", name = "Min Stacks to [W] in combo", value = 2, min = 1, max = 5})
 	Legendary.Combo:MenuElement({id = "WI", name = "Ignore Stack Check if X enemies", value = 3, min = 1, max = 5})
+	Legendary.Combo:MenuElement({id = "WHP", name = "Dont [W] if Enemy is under HP%", value = 30, min = 0, max = 100})
 	Legendary.Combo:MenuElement({id = "E", name = "[E] 90 Caliber Net", value = true, leftIcon = Icon.E})
-	Legendary.Combo:MenuElement({id = "EC", name = "Use [E] to chase [?]", value = true, tooltip = "Block if 3+ enemies"})
 	Legendary.Combo:MenuElement({id = "R", name = "[R] Ace in the Hole", value = true, leftIcon = Icon.R})
 	Legendary.Combo:MenuElement({id = "EQ", name = "[E]+[Q] Combo", value = true})
 	-- Clear --
@@ -381,6 +381,7 @@ function Caitlyn:Menu()
 	-- Killsteal -- 
 	Legendary.Killsteal:MenuElement({id = "Q", name = "[Q] Piltover Peacemaker", value = true, leftIcon = Icon.Q})
 	Legendary.Killsteal:MenuElement({id = "R", name = "[R] Ace in the Hole", value = true, leftIcon = Icon.R})
+	Legendary.Killsteal:MenuElement({id = "Rblock", name = "Block [R] KS if Combo Key Pressed", value = true})
 	-- Drawings --
 	Legendary.Drawing:MenuElement({id = "DrawQ", name = "Draw [Q] Range", value = true, leftIcon = Icon.Q})
 	Legendary.Drawing:MenuElement({id = "ColorQ", name = "Color", color = Draw.Color(255, 0, 0, 255)})
@@ -447,12 +448,8 @@ function Caitlyn:Combo()
                 KoreanCast(HK_E, KoreanPred(target, _E), Legendary.AS.EAS:Value())
 		end
 	end
-	if Legendary.Combo.EC:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 100 and myHero.pos:DistanceTo(target.pos) > 750 then
-		if CountEnemys(1300) >= 3 then return end
-		Control.CastSpell(HK_E, myHero.pos:Extended(target.pos, -100))
-	end
 	if Legendary.Combo.W:Value() and Ready(_W) and target.distance < 800 and myHero:GetSpellData(_W).ammo >= Legendary.Combo.WA:Value() then
-		if Game.Timer() - LastW > 2 then
+		if Game.Timer() - LastW > 2 and target.health/target.maxHealth > Legendary.Combo.WHP:Value() then
 			LastW = Game.Timer()
 			Control.CastSpell(HK_W, target.pos)
 		end 
@@ -560,6 +557,7 @@ end
 function Caitlyn:Killsteal()
 	if target == nil then return end
 	if Legendary.Killsteal.R:Value() and Ready(_R) then
+		if Legendary.Killsteal.Rblock:Value() and Combo then return end
 		local Rlevel = myHero:GetSpellData(_R).level
 		local Rrange = (({2000,2500,3000})[Rlevel])
 		local Rdamage = CalcPhysicalDamage(myHero, target, (({250, 475, 700})[Rlevel] + 2 * myHero.totalDamage))
