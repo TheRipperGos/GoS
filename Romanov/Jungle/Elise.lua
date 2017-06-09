@@ -1,7 +1,7 @@
 require 'DamageLib'
 require 'Eternal Prediction'
 
-local ScriptVersion = "Pre-Release"
+local ScriptVersion = "v1.0"
 --- Engine ---
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
