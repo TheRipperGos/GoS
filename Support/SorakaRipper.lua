@@ -1,6 +1,167 @@
+require 'DamageLib'
+require 'Eternal Prediction'
+
+local function Ready(spell)
+	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
+end
+
+function MinionsAround(pos, range)
+    local Count = 0
+    for i = 1, Game.MinionCount() do
+        local m = Game.Minion(i)
+        if IsValidTarget(m, range, true, point) then
+            Count = Count + 1
+        end
+    end
+    return Count
+end
+
+local function EnemiesAround(pos, range)
+local Count = 0
+	for i = 1, Game.HeroCount() do
+		local m = Game.Hero(i)
+		if m and m.team == 200 and not m.dead then
+			Count = Count + 1
+		end
+	end
+	return Count
+end
+
+local function AlliesAround(pos, range)
+	if type(point) ~= "userdata" then error("{CountAlliesInRange}: bad argument #1 (vector expected, got "..type(point)..")") end
+	local range = range == nil and math.huge or range 
+	if type(range) ~= "number" then error("{CountAlliesInRange}: bad argument #2 (number expected, got "..type(range)..")") end
+	local n = 0
+	for i = 1, Game.HeroCount() do
+		local unit = Game.Hero(i)
+		if unit.isAlly and not unit.isMe and IsValidTarget(unit, range, false, point) then
+			n = n + 1
+		end
+	end
+	return n
+end
+
+function IsValidTarget(unit, range, checkTeam, from)
+	local range = range == nil and math.huge or range
+	if type(range) ~= "number" then error("{IsValidTarget}: bad argument #2 (number expected, got "..type(range)..")") end
+	if type(checkTeam) ~= "nil" and type(checkTeam) ~= "boolean" then error("{IsValidTarget}: bad argument #3 (boolean or nil expected, got "..type(checkTeam)..")") end
+	if type(from) ~= "nil" and type(from) ~= "userdata" then error("{IsValidTarget}: bad argument #4 (vector or nil expected, got "..type(from)..")") end
+	if unit == nil or not unit.valid or not unit.visible or unit.dead or not unit.isTargetable or IsImmune(unit) or (checkTeam and unit.isAlly) then 
+		return false 
+	end 
+	return unit.pos:DistanceTo(from.pos and from.pos or myHero.pos) < range 
+end
+
+function IsRecalling()
+    for K, Buff in pairs(GetBuffs(myHero)) do
+        if Buff.name == "recall" and Buff.duration > 0 then
+            return true
+        end
+    end
+    return false
+end
+
+function HasBuff(unit, buffname)
+	for i = 0, unit.buffCount do
+	local buff = unit:GetBuff(i)
+	if buff.name == buffname and buff.count > 0 then 
+	return true
+	end
+	end
+	return false
+end
+
+local function GetDistance(p1,p2)
+return  math.sqrt(math.pow((p2.x - p1.x),2) + math.pow((p2.y - p1.y),2) + math.pow((p2.z - p1.z),2))
+end
+
+local function GetDistance2D(p1,p2)
+return  math.sqrt(math.pow((p2.x - p1.x),2) + math.pow((p2.y - p1.y),2))
+end
+
+local _EnemyHeroes
+function GetEnemyHeroes()
+  if _EnemyHeroes then return _EnemyHeroes end
+  for i = 1, Game.HeroCount() do
+    local unit = Game.Hero(i)
+    if unit.isEnemy then
+	  if _EnemyHeroes == nil then _EnemyHeroes = {} end
+      table.insert(_EnemyHeroes, unit)
+    end
+  end
+  return {}
+end
+
+local _AllyHeroes
+function GetAllyHeroes()
+  if _AllyHeroes then return _AllyHeroes end
+  _AllyHeroes = {}
+  for i = 1, Game.HeroCount() do
+    local unit = Game.Hero(i)
+    if unit.isAlly then
+      table.insert(_AllyHeroes, unit)
+    end
+  end
+  return _AllyHeroes
+end
+
+function GetTarget(range)
+    local target = nil
+    if Orb == 1 then
+        target = EOW:GetTarget(range)
+    elseif Orb == 2 then
+        target = _G.SDK.TargetSelector:GetTarget(range)
+    elseif Orb == 3 then
+        target = GOS:GetTarget(range)
+    end
+    return target
+end
+
+local intToMode = {
+       [0] = "",
+       [1] = "Combo",
+       [2] = "Harass",
+       [3] = "LastHit",
+       [4] = "Clear"
+}
+
+function GetMode()
+    if Orb == 1 then
+        return intToMode[EOW.CurrentMode]
+    elseif Orb == 2 then
+        if _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO] then
+            return "Combo"
+        elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS] then
+            return "Harass"    
+        elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR] or _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR] then
+            return "Clear"
+        elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT] then
+            return "LastHit"
+        elseif _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE] then
+            return "Flee"
+        end
+    else
+        return GOS.GetMode()
+    end
+end
+
+function CastSpell(hotkey,slot,target)
+    local Spelldata = {speed = myHero:GetSpellData(slot).range, delay = myHero:GetSpellData(slot).delay,range = myHero:GetSpellData(slot).range }
+    local Spellspell = Prediction:SetSpell(Spelldata, TYPE_CIRCULAR, true)
+    local pred = Spellspell:GetPrediction(target,myHero.pos)
+    if pred and pred.hitChance >= 0.25 and pred:mCollision() == 0 and pred:hCollision() == 0 then
+        Control.CastSpell(hotkey,pred.castPos)
+    end
+end
+
 class "Soraka"
 
 function Soraka:__init()
+	if _G.EOWLoaded then
+        Orb = 1
+    elseif _G.SDK and _G.SDK.Orbwalker then
+        Orb = 2
+    end
   	self:LoadSpells()
   	self:LoadMenu()
 	self.Spells = {
@@ -22,333 +183,188 @@ function Soraka:__init()
 		["TwistedFate"] = {{Key = _R, Duration = 2,KeyName = "R",Buff = "Destiny" }},
 		["Shen"] = {{Key = _R, Duration = 2,KeyName = "R",Buff = "shenstandunitedlock" }},
 	}
-	self.Enemies = {}
-	self.Allies = {}
-	for i = 1,Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if hero.isAlly then
-			table.insert(self.Allies,hero)
-		else
-			table.insert(self.Enemies,hero)
-		end	
-	end	
   	Callback.Add("Tick", function() self:Tick() end)
   	Callback.Add("Draw", function() self:Draw() end)
 end
 
 function Soraka:LoadSpells()
-  	Q = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width, radius = 235 }
-	W = { range = myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width }
-	E = { range = myHero:GetSpellData(_E).range, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width }
-	R = { range = myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width }
+  	Q = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width, radius = 235, icon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/cd/Starcall.png" }
+	W = { range = myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width, icon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/6/6f/Astral_Infusion.png" }
+	E = { range = myHero:GetSpellData(_E).range, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width, icon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/e/e7/Equinox.png" }
+	R = { range = myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width, icon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/f/f3/Wish.png" }
 end
 
 function Soraka:LoadMenu()
-  	local Icons = { C = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/8/8d/SorakaSquare.png",
-    				Q = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/cd/Starcall.png", 
-    				W = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/6/6f/Astral_Infusion.png", 
-    				E = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/e/e7/Equinox.png", 
-                    R = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/f/f3/Wish.png" 
-                  }
-  
 	--------- Menu Principal --------------------------------------------------------------
-  	self.Menu = MenuElement({type = MENU, id = "Menu", name = "The Ripper Series", leftIcon = Icons.C})
+  	TRS = MenuElement({type = MENU, id = "Menu", name = "The Ripper Series"})
 	--------- Soraka --------------------------------------------------------------------
-	self.Menu:MenuElement({type = MENU, id = "Ripper", name = "Soraka The Healer", leftIcon = Icons.C })
 	--------- Menu Principal --------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "Combo", name = "Combo"})
-  	self.Menu.Ripper.Combo:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
-  	self.Menu.Ripper.Combo:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
+  	TRS:MenuElement({type = MENU, id = "Combo", name = "Combo"})
+  	TRS.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+  	TRS.Combo:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
 	--------- Menu LaneClear ------------------------------------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "LaneClear", name = "Lane Clear"})
-  	self.Menu.Ripper.LaneClear:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
-    self.Menu.Ripper.LaneClear:MenuElement({id = "HQ", name = "Min minions hit by Q", value = 4, min = 1, max = 7})
-    self.Menu.Ripper.LaneClear:MenuElement({id = "Mana", name = "Min mana to Clear (%)", value = 40, min = 0, max = 100})
+  	TRS:MenuElement({type = MENU, id = "LaneClear", name = "Lane Clear"})
+  	TRS.LaneClear:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+    TRS.LaneClear:MenuElement({id = "HQ", name = "Minimum minions to hit by [Q]", value = 4, min = 1, max = 7})
+    TRS.LaneClear:MenuElement({id = "Mana", name = "Min mana to Clear (%)", value = 40, min = 0, max = 100})
 	--------- Menu JungleClear ------------------------------------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "JungleClear", name = "Jungle Clear"})
-  	self.Menu.Ripper.JungleClear:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
-    self.Menu.Ripper.JungleClear:MenuElement({id = "Mana", name = "Min mana to Clear (%)", value = 40, min = 0, max = 100})
+  	TRS:MenuElement({type = MENU, id = "JungleClear", name = "Jungle Clear"})
+  	TRS.JungleClear:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+    TRS.JungleClear:MenuElement({id = "Mana", name = "Min mana to Clear (%)", value = 40, min = 0, max = 100})
 	--------- Menu Harass ---------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "Harass", name = "Harass"})
-  	self.Menu.Ripper.Harass:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
-  	self.Menu.Ripper.Harass:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})
-    self.Menu.Ripper.Harass:MenuElement({id = "Mana", name = "Min mana to Harass (%)", value = 40, min = 0, max = 100})
+  	TRS:MenuElement({type = MENU, id = "Harass", name = "Harass"})
+  	TRS.Harass:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+  	TRS.Harass:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
+    TRS.Harass:MenuElement({id = "Mana", name = "Min mana to Harass (%)", value = 40, min = 0, max = 100})
 	--------- Menu Flee ----------------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "Flee", name = "Flee"})
-  	self.Menu.Ripper.Flee:MenuElement({id ="Q", name = "Use Q", value = true, leftIcon = Icons.Q})
-  	self.Menu.Ripper.Flee:MenuElement({id ="E", name = "Use E", value = true, leftIcon = Icons.E})
+  	TRS:MenuElement({type = MENU, id = "Flee", name = "Flee"})
+  	TRS.Flee:MenuElement({id ="Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+  	TRS.Flee:MenuElement({id ="E", name = "Use [E]", value = true, leftIcon = E.icon})
 	--------- Menu Heal------------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "Heal", name = "Heal"})
-  	self.Menu.Ripper.Heal:MenuElement({id = "W", name = "Use W", value = true, leftIcon = Icons.W})
-  	self.Menu.Ripper.Heal:MenuElement({id = "Health", name = "Min Soraka Health (%)", value = 45, min = 5, max = 100})
+  	TRS:MenuElement({type = MENU, id = "Heal", name = "Heal"})
+  	TRS.Heal:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
+  	TRS.Heal:MenuElement({id = "Health", name = "Min Soraka Health (%)", value = 45, min = 5, max = 100})
 	DelayAction(function()
 		for i = 1,Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team and not hero.isMe then
-				self.Menu.Ripper.Heal:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
+				TRS.Heal:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
 			end
 		end
 	end, 2)
-	self.Menu.Ripper.Heal:MenuElement({type = MENU, id = "HP", name = "HP settings"})
+	TRS.Heal:MenuElement({type = MENU, id = "HP", name = "HP settings"})
   	DelayAction(function()
 		for i = 1,Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team and not hero.isMe then
-				self.Menu.Ripper.Heal.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 85, min = 0, max = 100})
+				TRS.Heal.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 85, min = 0, max = 100})
 			end
 		end
 	end, 2)
 	--------- Menu ULT ----------------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "ULT", name = "Ultimate"})
-  	self.Menu.Ripper.ULT:MenuElement({id = "R", name = "Use R", value = true, leftIcon = Icons.R})
-  	self.Menu.Ripper.ULT:MenuElement({id = "Health", name = "Max Soraka Health (%)", value = 20, min = 0, max = 100})
+  	TRS:MenuElement({type = MENU, id = "ULT", name = "Ultimate"})
+  	TRS.ULT:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.Icon})
+  	TRS.ULT:MenuElement({id = "Health", name = "Max Soraka Health (%)", value = 20, min = 0, max = 100})
 	DelayAction(function()
 		for i = 1,Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team and not hero.isMe then
-				self.Menu.Ripper.ULT:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
+				TRS.ULT:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
 			end
 		end
 	end, 2)
-	self.Menu.Ripper.ULT:MenuElement({type = MENU, id = "HP", name = "HP settings"})
+	TRS.ULT:MenuElement({type = MENU, id = "HP", name = "HP settings"})
   	DelayAction(function()
 		for i = 1,Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team and not hero.isMe then
-				self.Menu.Ripper.ULT.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 15, min = 0, max = 100})
+				TRS.ULT.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 15, min = 0, max = 100})
 			end
 		end
 	end, 2)
 	--------- Menu KS -----------------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "KS", name = "Killsteal"})
-  	self.Menu.Ripper.KS:MenuElement({id = "Q", name = "Use Q", value = true, leftIcon = Icons.Q})
-  	self.Menu.Ripper.KS:MenuElement({id = "E", name = "Use E", value = true, leftIcon = Icons.E})                   
+  	TRS:MenuElement({type = MENU, id = "KS", name = "Killsteal"})
+  	TRS.KS:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+  	TRS.KS:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})                   
 	--------- Menu Misc -----------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "Misc", name = "Misc"})
-    self.Menu.Ripper.Misc:MenuElement({id = "CCE", name = "Auto E if enemy has CC", value = true})
-  	self.Menu.Ripper.Misc:MenuElement({id = "CancelE", name = "Auto E Interrupter", value = true})
+  	TRS:MenuElement({type = MENU, id = "Misc", name = "Misc"})
+    TRS.Misc:MenuElement({id = "CCE", name = "Auto [E] if enemy has CC", value = true})
+  	TRS.Misc:MenuElement({id = "CancelE", name = "Auto [E] Interrupter", value = true})
 	--------- Menu Drawings --------------------------------------------------------------------
-  	self.Menu.Ripper:MenuElement({type = MENU, id = "Drawings", name = "Drawings"})
-  	self.Menu.Ripper.Drawings:MenuElement({id = "Q", name = "Draw Q range", value = true, leftIcon = Icons.Q})
-  	self.Menu.Ripper.Drawings:MenuElement({id = "E", name = "Draw E range", value = true, leftIcon = Icons.E})
-  	self.Menu.Ripper.Drawings:MenuElement({id = "Width", name = "Width", value = 2, min = 1, max = 5, step = 1})
-	self.Menu.Ripper.Drawings:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 0, 0, 255)})
+  	TRS:MenuElement({type = MENU, id = "Drawings", name = "Drawings"})
+  	TRS.Drawings:MenuElement({id = "Q", name = "Draw [Q] range", value = true, leftIcon = Q.icon})
+  	TRS.Drawings:MenuElement({id = "E", name = "Draw [E] range", value = true, leftIcon = E.icon})
+  	TRS.Drawings:MenuElement({id = "Width", name = "Width", value = 2, min = 1, max = 5, step = 1})
+	TRS.Drawings:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 0, 0, 255)})
 end
 
 function Soraka:Tick()
-  	local Combo = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_COMBO]) or (_G.GOS and _G.GOS:GetMode() == "Combo") or (_G.EOWLoaded and EOW:Mode() == "Combo")
-  	local LastHit = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LASTHIT]) or (_G.GOS and _G.GOS:GetMode() == "Lasthit") or (_G.EOWLoaded and EOW:Mode() == "LastHit")
-  	local Clear = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_LANECLEAR]) or (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_JUNGLECLEAR]) or (_G.GOS and _G.GOS:GetMode() == "Clear") or (_G.EOWLoaded and EOW:Mode() == "LaneClear")
-  	local Harass = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_HARASS]) or (_G.GOS and _G.GOS:GetMode() == "Harass") or (_G.EOWLoaded and EOW:Mode() == "Harass")
-  	local Flee = (_G.SDK and _G.SDK.Orbwalker.Modes[_G.SDK.ORBWALKER_MODE_FLEE]) or (_G.GOS and _G.GOS:GetMode() == "Flee") or (_G.EOWLoaded and EOW:Mode() == "Flee")
-  	if Combo then
-    	self:Combo()
-    elseif Clear then
-    	self:LaneClear()
-	self:JungleClear()
-    elseif Harass then
-    	self:Harass()
-    elseif Flee then
+	local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Combo()
+	elseif Mode == "Harass" then
+		self:Harass()
+	elseif Mode == "Clear" then
+		self:Clear()
+    elseif Mode == "Flee" then
     	self:Flee()
     end
+	  	self:KS()
+	if Ready(_W) then
         self:Heal()
+	end
+	if Ready(_R) then
 		self:AutoR()
 		self:SelfAutoR()
-  		self:KS()
+	end
   		self:Misc()
-end
-
-function Soraka:GetValidEnemy(range)
-  	for i = 1,Game.HeroCount() do
-    	local enemy = Game.Hero(i)
-    	if  enemy.team ~= myHero.team and enemy.valid and enemy.pos:DistanceTo(myHero.pos) < 1200 then
-    		return true
-    	end
-    end
-  	return false
-end
-
-function Soraka:IsValidTarget(unit,range)
-    return unit ~= nil and unit.valid and unit.visible and not unit.dead and unit.isTargetable and not unit.isImmortal and unit.pos:DistanceTo(myHero.pos) <= 300000
-end
-
-function Soraka:Ready (spell)
-	return Game.CanUseSpell(spell) == 0 
 end
 	
 function Soraka:Combo()
-  	if self:GetValidEnemy(1200) == false then return end
-  	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
-  	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(1200, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(1200,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
-
-    if self:IsValidTarget(target,800) and myHero.pos:DistanceTo(target.pos) < 800 and self.Menu.Ripper.Combo.Q:Value() and self:Ready(_Q) then
-        Control.CastSpell(HK_Q,target:GetPrediction(Q.speed, Q.delay))
+  	local target = GetTarget(925)
+  	if not target then return end
+    if myHero.pos:DistanceTo(target.pos) < 790 and TRS.Combo.Q:Value() and Ready(_Q) then
+        CastSpell(HK_Q,_Q,target)
     end
-    if self:IsValidTarget(target,925) and myHero.pos:DistanceTo(target.pos) < 925  and self.Menu.Ripper.Combo.E:Value() and self:Ready(_E) then
-        Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
+    if myHero.pos:DistanceTo(target.pos) < 900  and TRS.Combo.E:Value() and Ready(_E) then
+        CastSpell(HK_E,_E,target)
     end
 end
 
-function Soraka:GetValidMinion(range)
-    	for i = 1,Game.MinionCount() do
-        local minion = Game.Minion(i)
-        if  minion.team ~= myHero.team and minion.valid and minion.pos:DistanceTo(myHero.pos) < E.range then
-        return true
-        end
-    	end
-    	return false
-end
-
-function Soraka:HasCC(unit)	
-	for i = 0, unit.buffCount do
-	local buff = myHero:GetBuff(i);
-	if buff.count > 0 then
-		if ((buff.type == 5)
-		or (buff.type == 8)
-		or (buff.type == 9)
-		or (buff.type == 10)
-		or (buff.type == 11)
-		or (buff.type == 21)
-		or (buff.type == 22)
-		or (buff.type == 24)
-		or (buff.type == 28)
-		or (buff.type == 29)
-		or (buff.type == 31)) then
-		return true
-		end
-		end
-		end
-	return false
-end
-
-function Soraka:HpPred(unit, delay)
-	if _G.GOS then
-	hp =  GOS:HP_Pred(unit,delay)
-	else
-	hp = unit.health
-	end
-	return hp
-end
-
-function Soraka:MinionsAround(pos, range, team)
-    local Count = 0
-    for i = 1, Game.MinionCount() do
-        local m = Game.Minion(i)
-        if m and m.team == 200 and not m.dead and m.pos:DistanceTo(pos, m.pos) < 235 then
-            Count = Count + 1
-        end
-    end
-    return Count
-end
-
-function Soraka:LaneClear()
-  	if self:GetValidMinion(Q.range) == false then return end
+function Soraka:Clear()
+  	if TRS.LaneClear.Q:Value() == false then return end
   	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
-    	if  minion.team == 200 then
-      	if self:IsValidTarget(minion,800) and myHero.pos:DistanceTo(minion.pos) < 800 and self.Menu.Ripper.LaneClear.Q:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Ripper.LaneClear.Mana:Value() / 100 ) and self:Ready(_Q) then
-			if self:MinionsAround(minion.pos, 235, 200) >= self.Menu.Ripper.LaneClear.HQ:Value() then
-				Control.CastSpell(HK_Q,minion.pos)
+      	if minion.team ~= myHero.team and myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana < TRS.LaneClear.Mana:Value() then
+		print("minion reconhecido")
+			if MinionsAround(minion.pos,235) >= TRS.LaneClear.HQ:Value() then
+				Control.CastSpell(HK_Q,_Q,minion.pos)
 				end
 			end
 		end
 	end
-end
-
-function Soraka:JungleClear()
-  	if self:GetValidMinion(Q.range) == false then return end
-  	for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)
-    	if  minion.team == 300 then
-			if self:IsValidTarget(minion,800) and myHero.pos:DistanceTo(minion.pos) < 800 and self.Menu.Ripper.JungleClear.Q:Value() and (myHero.mana/myHero.maxMana >= self.Menu.Ripper.JungleClear.Mana:Value() / 100 ) and self:Ready(_Q) then
-			Control.CastSpell(HK_Q,minion.pos)
-			break
-			end
-		end
-    end
-end
-
-function Soraka:GetValidAlly(range)
-  	for i = 1,Game.HeroCount() do
-    	local ally = Game.Hero(i)
-    	if  ally.team == myHero.team and ally.valid and ally.pos:DistanceTo(myHero.pos) > 1 then
-    		return true
-    	end
-    end
-  	return false
-end
 
 function Soraka:Harass()
-  	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
-    if self:GetValidEnemy(925) == false then return end
-  	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(925, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(925,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
-    if self:IsValidTarget(target,800) and myHero.pos:DistanceTo(target.pos) < 800 and (myHero.mana/myHero.maxMana > self.Menu.Ripper.Harass.Mana:Value() / 100) and self.Menu.Ripper.Harass.Q:Value() and self:Ready(_Q) then
-        Control.CastSpell(HK_Q,target:GetPrediction(Q.speed, Q.delay))
+    if myHero.pos:DistanceTo(target.pos) < 800 and (myHero.mana/myHero.maxMana > TRS.Harass.Mana:Value() / 100) and TRS.Harass.Q:Value() and Ready(_Q) then
+        CastSpell(HK_Q,_Q,target)
     end
-    if self:IsValidTarget(target,925) and myHero.pos:DistanceTo(target.pos) < 925 and (myHero.mana/myHero.maxMana > self.Menu.Ripper.Harass.Mana:Value() / 100) and self.Menu.Ripper.Harass.E:Value() and self:Ready(_E) then
-        Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
+    if myHero.pos:DistanceTo(target.pos) < 925 and (myHero.mana/myHero.maxMana > TRS.Harass.Mana:Value() / 100) and TRS.Harass.E:Value() and Ready(_E) then
+        CastSpell(HK_E,_Q,target)
     end
-end
-
-function Soraka:HasBuff(unit, buffname)
-	for i = 0, unit.buffCount do
-	local buff = unit:GetBuff(i)
-	if buff.name == buffname and buff.count > 0 then 
-	return true
-	end
-	end
-	return false
 end
 
 function Soraka:Flee()
-  	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
-    if self:GetValidEnemy(925) == false then return end
-  	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(925, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(925,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
-
-    if self:IsValidTarget(target,800) and myHero.pos:DistanceTo(target.pos) < 800 and self.Menu.Ripper.Flee.Q:Value() and self:Ready(_Q) then
-        Control.CastSpell(HK_Q,target:GetPrediction(Q.speed, Q.delay))
+	local target = GetTarget(925)
+  	if not target then return end
+    if myHero.pos:DistanceTo(target.pos) < 800 and TRS.Flee.Q:Value() and Ready(_Q) then
+        CastSpell(HK_Q,_Q,target)
     end
-    if self:IsValidTarget(target,925) and myHero.pos:DistanceTo(target.pos) < 925  and self.Menu.Ripper.Flee.E:Value() and self:Ready(_E) then
-        Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
+    if myHero.pos:DistanceTo(target.pos) < 925  and TRS.Flee.E:Value() and Ready(_E) then
+        CastSpell(HK_E,_E,target)
     end
-  	if self:GetValidAlly(550) == false then return end
-  	if self:IsValidTarget(ally,550) and myHero.pos:DistanceTo(ally.pos) < 550 and self:HasBuff(myHero, "sorakaqregen") and self:Ready(_W) and (myHero.helth/myHero.maxHealth >= 60 / 100 ) then
+	for i,ally in pairs(GetAllyHeroes()) do
+	if not ally.isMe then
+  	if myHero.pos:DistanceTo(ally.pos) < 550 and HasBuff(myHero, "sorakaqregen") and Ready(_W) and (myHero.helth/myHero.maxHealth >= 60 / 100 ) then
     if	(self:CountEnemies(ally.pos,500) > 0) and not ally.isMe then
 		Control.CastSpell(HK_W,ally)
     end
     end
-end
-
-function Soraka:GetAllyHeroes()
-	local _AllyHeroes
-	if _AllyHeroes then return _AllyHeroes end
-	_AllyHeroes = {}
-	for i = 1, Game.HeroCount() do
-    local unit = Game.Hero(i)
-    if unit.isAlly then
-      table.insert(_AllyHeroes, unit)
-    end
 	end
-	return _AllyHeroes
-end
-
-function GetPercentHP(unit)
-  if type(unit) ~= "userdata" then error("{GetPercentHP}: bad argument #1 (userdata expected, got "..type(unit)..")") end
-  return 100*unit.health/unit.maxHealth
+	end
 end
 
 function Soraka:Heal()
-  	if self.Menu.Ripper.Heal.W:Value() == false then return end
-		for i,ally in pairs(self.GetAllyHeroes()) do
-		if self:IsValidTarget(ally,W.range) and myHero.pos:DistanceTo(ally.pos) < 550 then
+  	if TRS.Heal.W:Value() == false then return end
+		for i,ally in pairs(GetAllyHeroes()) do
+		if myHero.pos:DistanceTo(ally.pos) < 550 then
 		if not ally.isMe then
 		for i = 1, Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team and not hero.isMe then
-		if self.Menu.Ripper.Heal[hero.networkID]:Value() and self:Ready(_W) then
-		if (ally.health/ally.maxHealth <= self.Menu.Ripper.Heal.HP[hero.networkID]:Value() / 100) and not ally.isMe and (myHero.health/myHero.maxHealth >= self.Menu.Ripper.Heal.Health:Value() / 100 ) then
-				Control.CastSpell(HK_W,ally)
-		
+		if TRS.Heal[hero.networkID]:Value() then
+		if (ally.health/ally.maxHealth <= TRS.Heal.HP[hero.networkID]:Value() / 100) and not ally.isMe and (myHero.health/myHero.maxHealth >= TRS.Heal.Health:Value() / 100 ) and Ready(_W) and not IsRecalling() then
+				Control.CastSpell(HK_W,ally)	
+				return
 		end
 		end
 		end
@@ -356,31 +372,23 @@ function Soraka:Heal()
 		end
 		end
 		end
-end
-
-function Soraka:CountEnemies(pos,range)
-	local N = 0
-	for i = 1,Game.HeroCount()  do
-		local hero = Game.Hero(i)	
-		if self:IsValidTarget(hero,range) and hero.team ~= myHero.team then
-			N = N + 1
-		end
-	end
-	return N	
 end
 
 function Soraka:AutoR()
-  	if self.Menu.Ripper.ULT.R:Value() == false then return end
-		for i,ally in pairs(self.GetAllyHeroes()) do
-		if self:IsValidTarget(ally,300000) and myHero.pos:DistanceTo(ally.pos) < 300000 then
+	local target = GetTarget(300000)
+	if not target then return end
+  	if TRS.ULT.R:Value() == false then return end
+		for i,ally in pairs(GetAllyHeroes()) do
 		if not ally.isMe then
 		for i = 1, Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team and not hero.isMe then
-		if self.Menu.Ripper.ULT[hero.networkID]:Value() and self:Ready(_R) then
-		if (ally.health/ally.maxHealth <= self.Menu.Ripper.ULT.HP[hero.networkID]:Value() / 100) and (self:CountEnemies(ally.pos,500) > 0) and not ally.isMe then
-				Control.CastSpell(HK_R)
-		
+		if TRS.ULT[hero.networkID]:Value() and Ready(_R) then
+		if (ally.health/ally.maxHealth <= TRS.ULT.HP[hero.networkID]:Value() / 100) and not ally.isMe then
+		if (EnemiesAround(ally.pos,600) > 0) then
+		print("tentando ultar")
+				Control.CastSpell(HK_R)	
+				return
 		end
 		end
 		end
@@ -388,36 +396,31 @@ function Soraka:AutoR()
 		end
 		end
 		end
-end
+		end
 
 function Soraka:SelfAutoR()
-	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
-    if self:GetValidEnemy(425) == false then return end
-  	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(425, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(425,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
-	if self.Menu.Ripper.ULT.R:Value() == false then return end
-		if self:IsValidTarget(target,425) and (myHero.health/myHero.maxHealth <= self.Menu.Ripper.ULT.Health:Value() / 100) and self:Ready(_R) and myHero.pos:DistanceTo(target.pos) < 425 then
+    local target = GetTarget(425)
+	if not target then return end
+	if TRS.ULT.R:Value() == false then return end
+		if (myHero.health/myHero.maxHealth <= TRS.ULT.Health:Value() / 100) and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 425 then
 			Control.CastSpell(HK_R)
+			return
 		end
 end
   
 function Soraka:KS()
-    if self.Menu.Ripper.KS.Q:Value() == false then return end
-    if self:GetValidEnemy(925) == false then return end
-  	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
-  	local target = (_G.SDK and _G.SDK.TargetSelector:GetTarget(925, _G.SDK.DAMAGE_TYPE_PHYSICAL)) or (_G.GOS and _G.GOS:GetTarget(925,"AD")) or ( _G.EOWLoaded and EOW:GetTarget())
-    
-  	if self:IsValidTarget(target,925) and myHero.pos:DistanceTo(target.pos) < 925 and self.Menu.Ripper.KS.E:Value() and self:Ready(_E) then
-    	local level = myHero:GetSpellData(_E).level
-    	local Edamage = CalcMagicalDamage(myHero, target, (({70, 110, 150, 190, 230})[level] + 0.4 * myHero.ap))
-	if Edamage >= self:HpPred(target,1) + target.hpRegen * 2 then
-  	Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
+	local target = GetTarget(925)
+    if not target then return end 
+  	if myHero.pos:DistanceTo(target.pos) < 925 and TRS.KS.E:Value() and Ready(_E) then
+    	local Edamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_E).level + 0.4 * myHero.ap))
+	if Edamage > target.health then
+		CastSpell(HK_E,_E,target)
 	end
 	end
-	if self:IsValidTarget(target,800) and myHero.pos:DistanceTo(target.pos) < 800 and self.Menu.Ripper.KS.Q:Value() and self:Ready(_Q) then
-    	local level = myHero:GetSpellData(_Q).level
-    	local Qdamage = CalcMagicalDamage(myHero, target, (({70, 110, 150, 190, 230})[level] + 0.35 * myHero.ap))
-	if 	Qdamage >= self:HpPred(target,1) + target.hpRegen * 2 then
-  	Control.CastSpell(HK_Q,target:GetPrediction(Q.speed,Q.delay))
+	if myHero.pos:DistanceTo(target.pos) < 800 and TRS.KS.Q:Value() and Ready(_Q) then
+    	local Qdamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_E).level + 0.35 * myHero.ap))
+	if 	Qdamage > target.health then
+  	CastSpell(HK_Q,_Q,target)
 	end
     end
 end
@@ -435,22 +438,34 @@ function Soraka:IsChannelling(unit)
 end
 
 function Soraka:Misc()
-    if self:GetValidEnemy(925) == false then return end
-  	if (not _G.SDK and not _G.GOS and not _G.EOWLoaded) then return end
-    if self:Ready(_E) and self:IsValidTarget(target,E.range) and self:IsChannelling(enemy) and self.Menu.Ripper.Misc.CancelE:Value() then
-          Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
+    local target = GetTarget(925)
+  	if not target then return end
+    if Ready(_E) and self:IsChannelling(enemy) and TRS.Misc.CancelE:Value() then
+          CastSpell(HK_E,_E,target)
     end
-	if self:Ready(_E) and self:IsValidTarget(target,E.range) and self:HasCC() and self.Menu.Ripper.Misc.CCE:Value() then
-          Control.CastSpell(HK_E,target:GetPrediction(E.speed,E.delay))
+	if Ready(_E) and self:HasCC() and TRS.Misc.CCE:Value() then
+          CastSpell(HK_E,_E,target)
     end
 end
 
 function Soraka:Draw()
 	if myHero.dead then return end
-	if self.Menu.Ripper.Drawings.Q:Value() then Draw.Circle(myHero.pos, 800, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())
+	if TRS.Drawings.Q:Value() then Draw.Circle(myHero.pos, 800, TRS.Drawings.Width:Value(), TRS.Drawings.Color:Value())
 	end
-	if self.Menu.Ripper.Drawings.E:Value() then Draw.Circle(myHero.pos, 925, self.Menu.Ripper.Drawings.Width:Value(), self.Menu.Ripper.Drawings.Color:Value())	
+	if TRS.Drawings.E:Value() then Draw.Circle(myHero.pos, 925, TRS.Drawings.Width:Value(), TRS.Drawings.Color:Value())	
 	end	
+end
+
+function Soraka:HasCC(unit)	
+	for i = 0, unit.buffCount do
+	local buff = myHero:GetBuff(i);
+	if buff.count > 0 then
+		if ((buff.type == 5) or (buff.type == 8) or (buff.type == 9) or (buff.type == 10) or (buff.type == 11) or (buff.type == 21) or (buff.type == 22) or (buff.type == 24) or (buff.type == 28) or (buff.type == 29)	or (buff.type == 31)) then
+		return true
+		end
+		end
+		end
+	return false
 end
     
 function OnLoad()
