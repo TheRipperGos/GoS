@@ -86,23 +86,6 @@ local function EnableOrb(bool)
 	end
 end
 
-local ItemHotKey = {
-	[ITEM_1] = HK_ITEM_1,
-	[ITEM_2] = HK_ITEM_2,
-	[ITEM_3] = HK_ITEM_3,
-	[ITEM_4] = HK_ITEM_4,
-	[ITEM_5] = HK_ITEM_5,
-	[ITEM_6] = HK_ITEM_6,}
-
-function GetItemSlot(unit, id)
-	for i = ITEM_1, ITEM_7 do
-		if unit:GetItemData(i).itemID == id then
-			return i
-		end
-	end
-	return 0
-end
-
 local function PredCast(hotkey,slot,target,predmode)
 	local data = { range = myHero:GetSpellData(slot).range, delay = myHero:GetSpellData(slot).delay, speed = myHero:GetSpellData(slot).speed}
 	local spell = Prediction:SetSpell(data, predmode, true)
@@ -992,10 +975,6 @@ function Utility:Menu()
 end
 
 function Utility:Tick()
-	local Mode = GetMode()
-	if Mode == "Combo" then
-		self:Combo()
-	end
 	self:AutoLevel()
 end
 
