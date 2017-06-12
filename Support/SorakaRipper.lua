@@ -28,17 +28,14 @@ local Count = 0
 end
 
 local function AlliesAround(pos, range)
-	if type(point) ~= "userdata" then error("{CountAlliesInRange}: bad argument #1 (vector expected, got "..type(point)..")") end
-	local range = range == nil and math.huge or range 
-	if type(range) ~= "number" then error("{CountAlliesInRange}: bad argument #2 (number expected, got "..type(range)..")") end
-	local n = 0
+local Count = 0
 	for i = 1, Game.HeroCount() do
-		local unit = Game.Hero(i)
-		if unit.isAlly and not unit.isMe and IsValidTarget(unit, range, false, point) then
-			n = n + 1
+		local m = Game.Hero(i)
+		if m and m.team == 100 and not m.dead then
+			Count = Count + 1
 		end
 	end
-	return n
+	return Count
 end
 
 function IsValidTarget(unit, range, checkTeam, from)
@@ -289,15 +286,15 @@ function Soraka:Tick()
     elseif Mode == "Flee" then
     	self:Flee()
     end
-	  	self:KS()
+	self:AutoR()
+	self:SelfAutoR()
+	self:KS()
 	if Ready(_W) then
         self:Heal()
 	end
-	if Ready(_R) then
-		self:AutoR()
-		self:SelfAutoR()
+
 	end
-  		self:Misc()
+  	self:Misc()
 end
 	
 function Soraka:Combo()
@@ -316,7 +313,6 @@ function Soraka:Clear()
   	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
       	if minion.team ~= myHero.team and myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana < TRS.LaneClear.Mana:Value() then
-		print("minion reconhecido")
 			if MinionsAround(minion.pos,235) >= TRS.LaneClear.HQ:Value() then
 				Control.CastSpell(HK_Q,_Q,minion.pos)
 				end
@@ -386,7 +382,6 @@ function Soraka:AutoR()
 		if TRS.ULT[hero.networkID]:Value() and Ready(_R) then
 		if (ally.health/ally.maxHealth <= TRS.ULT.HP[hero.networkID]:Value() / 100) and not ally.isMe then
 		if (EnemiesAround(ally.pos,600) > 0) then
-		print("tentando ultar")
 				Control.CastSpell(HK_R)	
 				return
 		end
@@ -399,7 +394,7 @@ function Soraka:AutoR()
 		end
 
 function Soraka:SelfAutoR()
-    local target = GetTarget(425)
+    local target = GetTarget(450)
 	if not target then return end
 	if TRS.ULT.R:Value() == false then return end
 		if (myHero.health/myHero.maxHealth <= TRS.ULT.Health:Value() / 100) and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 425 then
