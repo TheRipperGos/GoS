@@ -128,7 +128,7 @@ local function CastSpell(hotkey,slot,target,predmode)
 	local data = { range = myHero:GetSpellData(slot).range, delay = myHero:GetSpellData(slot).delay, speed = myHero:GetSpellData(slot).speed}
 	local spell = Prediction:SetSpell(data, predmode, true)
 	local pred = spell:GetPrediction(target,myHero.pos)
-	if pred and pred.hitChance >= Romanov.Pred.Chance:Value() then
+	if pred and pred.hitChance >= TRS.Pred.Chance:Value() then
 		Control.CastSpell(hotkey, pred.castPos)
 	end
 end
