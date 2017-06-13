@@ -183,7 +183,7 @@ function Ahri:Combo()
 			Control.CastSpell(HK_R)
 		end
 	end
-	if Romanov.Combo.E:Value() and Ready(_E) then
+	if Romanov.Combo.E:Value() and Ready(_E) and target:GetCollision(E.width,E.speed,E.delay) == 0 then
 		PredCast(HK_E,_E,target,TYPE_LINE)
 	end
 	if Romanov.Combo.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 880 then
@@ -238,7 +238,7 @@ function Ahri:Misc()
 	if target == nil then return end
 	if Romanov.Misc.Eks:Value() and Ready(_E) then
 		local Edmg = CalcMagicalDamage(myHero, target, (25 + 35 * myHero:GetSpellData(_E).level + 0.6 * myHero.ap))
-		if Edmg > target.health then
+		if Edmg > target.health and target:GetCollision(E.width,E.speed,E.delay) == 0 then
 			PredCast(HK_E,_E,target,TYPE_LINE)
 		end
 	end
@@ -387,7 +387,7 @@ function Amumu:Combo()
 	if Romanov.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 550 and  Romanov.Combo.RE:Value() <= HeroesAround(myHero.pos, 550, 200) then
 		Control.CastSpell(HK_R)
 	end
-	if Romanov.Combo.Q:Value() and Ready(_Q) then
+	if Romanov.Combo.Q:Value() and Ready(_Q) and target:GetCollision(Q.width,Q.speed,Q.delay) == 0 then
 		PredCast(HK_Q,_Q,target,TYPE_LINE)
 	end
 	if Romanov.Combo.W:Value() and Ready(_W)and myHero.pos:DistanceTo(target.pos) < 300 and myHero:GetSpellData(_W).toggleState ~= 2 then
@@ -425,7 +425,7 @@ function Amumu:Misc()
 	end
 	if Romanov.Misc.Qks:Value() and Ready(_Q)and myHero.pos:DistanceTo(target.pos) < 1050 then
 		local Qdmg = CalcMagicalDamage(myHero, target, (30 + 50 * myHero:GetSpellData(_Q).level + 0.7* myHero.ap))
-		if Qdmg > target.health then
+		if Qdmg > target.health and target:GetCollision(Q.width,Q.speed,Q.delay) == 0 then
 			PredCast(HK_Q,_Q,target,TYPE_LINE)
 		end
 	end
