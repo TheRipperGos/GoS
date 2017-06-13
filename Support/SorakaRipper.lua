@@ -5,48 +5,30 @@ local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
 end
 
-function MinionsAround(pos, range)
+local function OnScreen(unit)
+	return unit.pos:To2D().onScreen;
+end
+
+function MinionsAround(pos, range, team)
     local Count = 0
     for i = 1, Game.MinionCount() do
         local m = Game.Minion(i)
-        if IsValidTarget(m, range, true, point) then
+        if m and m.team == team and not m.dead and m.pos:DistanceTo(pos, hero.pos) < range then
             Count = Count + 1
         end
     end
     return Count
 end
 
-local function EnemiesAround(pos, range)
-local Count = 0
+local function HeroesAround(pos, range, team)
+	local Count = 0
 	for i = 1, Game.HeroCount() do
-		local m = Game.Hero(i)
-		if m and m.team == 200 and not m.dead then
+		local hero = Game.Hero(i)
+		if hero and hero.team == team and not hero.dead and hero.pos:DistanceTo(pos, hero.pos) < range then
 			Count = Count + 1
 		end
 	end
 	return Count
-end
-
-local function AlliesAround(pos, range)
-local Count = 0
-	for i = 1, Game.HeroCount() do
-		local m = Game.Hero(i)
-		if m and m.team == 100 and not m.dead then
-			Count = Count + 1
-		end
-	end
-	return Count
-end
-
-function IsValidTarget(unit, range, checkTeam, from)
-	local range = range == nil and math.huge or range
-	if type(range) ~= "number" then error("{IsValidTarget}: bad argument #2 (number expected, got "..type(range)..")") end
-	if type(checkTeam) ~= "nil" and type(checkTeam) ~= "boolean" then error("{IsValidTarget}: bad argument #3 (boolean or nil expected, got "..type(checkTeam)..")") end
-	if type(from) ~= "nil" and type(from) ~= "userdata" then error("{IsValidTarget}: bad argument #4 (vector or nil expected, got "..type(from)..")") end
-	if unit == nil or not unit.valid or not unit.visible or unit.dead or not unit.isTargetable or IsImmune(unit) or (checkTeam and unit.isAlly) then 
-		return false 
-	end 
-	return unit.pos:DistanceTo(from.pos and from.pos or myHero.pos) < range 
 end
 
 function IsRecalling()
@@ -142,13 +124,22 @@ function GetMode()
     end
 end
 
-function CastSpell(hotkey,slot,target)
-    local Spelldata = {speed = myHero:GetSpellData(slot).range, delay = myHero:GetSpellData(slot).delay,range = myHero:GetSpellData(slot).range }
-    local Spellspell = Prediction:SetSpell(Spelldata, TYPE_CIRCULAR, true)
-    local pred = Spellspell:GetPrediction(target,myHero.pos)
-    if pred and pred.hitChance >= 0.25 and pred:mCollision() == 0 and pred:hCollision() == 0 then
-        Control.CastSpell(hotkey,pred.castPos)
-    end
+local function CastSpell(hotkey,slot,target,predmode)
+	local data = { range = myHero:GetSpellData(slot).range, delay = myHero:GetSpellData(slot).delay, speed = myHero:GetSpellData(slot).speed}
+	local spell = Prediction:SetSpell(data, predmode, true)
+	local pred = spell:GetPrediction(target,myHero.pos)
+	if pred and pred.hitChance >= Romanov.Pred.Chance:Value() then
+		Control.CastSpell(hotkey, pred.castPos)
+	end
+end
+
+local function CastMinimap(hotkey,slot,target,predmode)
+	local data = { range = myHero:GetSpellData(slot).range, delay = myHero:GetSpellData(slot).delay, speed = myHero:GetSpellData(slot).speed}
+	local spell = Prediction:SetSpell(data, predmode, true)
+	local pred = spell:GetPrediction(target,myHero.pos)
+	if pred and pred.hitChance >= 0.25 then
+		Control.CastSpell(hotkey, pred.castPos:ToMM().x,pred.castPos:ToMM().y)
+	end
 end
 
 class "Soraka"
@@ -313,8 +304,8 @@ function Soraka:Clear()
   	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
       	if minion.team ~= myHero.team and myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana < TRS.LaneClear.Mana:Value() then
-			if MinionsAround(minion.pos,235) >= TRS.LaneClear.HQ:Value() then
-				Control.CastSpell(HK_Q,_Q,minion.pos)
+			if MinionsAround(minion.pos,235,200) >= TRS.LaneClear.HQ:Value() then
+				CastSpell(HK_Q,_Q,minion.pos,TYPE_CIRCULAR)
 				end
 			end
 		end
@@ -340,10 +331,12 @@ function Soraka:Flee()
     end
 	for i,ally in pairs(GetAllyHeroes()) do
 	if not ally.isMe then
+	if HeroesAround(myHero.pos,550,100) > 0 then
   	if myHero.pos:DistanceTo(ally.pos) < 550 and HasBuff(myHero, "sorakaqregen") and Ready(_W) and (myHero.helth/myHero.maxHealth >= 60 / 100 ) then
     if	(self:CountEnemies(ally.pos,500) > 0) and not ally.isMe then
 		Control.CastSpell(HK_W,ally)
     end
+	end
     end
 	end
 	end
@@ -381,7 +374,7 @@ function Soraka:AutoR()
 		if hero.team == myHero.team and not hero.isMe then
 		if TRS.ULT[hero.networkID]:Value() and Ready(_R) then
 		if (ally.health/ally.maxHealth <= TRS.ULT.HP[hero.networkID]:Value() / 100) and not ally.isMe then
-		if (EnemiesAround(ally.pos,600) > 0) then
+		if (HeroesAround(ally.pos,600,200) > 0) then
 				Control.CastSpell(HK_R)	
 				return
 		end
