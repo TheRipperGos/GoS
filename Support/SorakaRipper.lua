@@ -185,7 +185,6 @@ end
 function Soraka:LoadMenu()
 	--------- Menu Principal --------------------------------------------------------------
   	TRS = MenuElement({type = MENU, id = "Menu", name = "The Ripper Series"})
-	--------- Soraka --------------------------------------------------------------------
 	--------- Menu Principal --------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Combo", name = "Combo"})
   	TRS.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
@@ -221,35 +220,29 @@ function Soraka:LoadMenu()
 		end
 	end, 2)
 	TRS.Heal:MenuElement({type = MENU, id = "HP", name = "HP settings"})
-  	DelayAction(function()
 		for i = 1,Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team and not hero.isMe then
 				TRS.Heal.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 85, min = 0, max = 100})
 			end
 		end
-	end, 2)
 	--------- Menu ULT ----------------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "ULT", name = "Ultimate"})
   	TRS.ULT:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.Icon})
   	TRS.ULT:MenuElement({id = "Health", name = "Max Soraka Health (%)", value = 20, min = 0, max = 100})
-	DelayAction(function()
 		for i = 1,Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team and not hero.isMe then
 				TRS.ULT:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
 			end
 		end
-	end, 2)
 	TRS.ULT:MenuElement({type = MENU, id = "HP", name = "HP settings"})
-  	DelayAction(function()
 		for i = 1,Game.HeroCount() do
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team and not hero.isMe then
 				TRS.ULT.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 15, min = 0, max = 100})
 			end
 		end
-	end, 2)
 	--------- Menu KS -----------------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "KS", name = "Killsteal"})
   	TRS.KS:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
@@ -264,6 +257,9 @@ function Soraka:LoadMenu()
   	TRS.Drawings:MenuElement({id = "E", name = "Draw [E] range", value = true, leftIcon = E.icon})
   	TRS.Drawings:MenuElement({id = "Width", name = "Width", value = 2, min = 1, max = 5, step = 1})
 	TRS.Drawings:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 0, 0, 255)})
+	--------- Menu Prediction --------------------------------------------------------------------
+	TRS:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	TRS.Pred:MenuElement({id = "Chance", name = "Hitchance", value = 0.15, min = 0.1, max = 1, step = 0.05})
 end
 
 function Soraka:Tick()
@@ -284,7 +280,7 @@ function Soraka:Tick()
         self:Heal()
 	end
 
-	end
+
   	self:Misc()
 end
 	
@@ -292,10 +288,10 @@ function Soraka:Combo()
   	local target = GetTarget(925)
   	if not target then return end
     if myHero.pos:DistanceTo(target.pos) < 790 and TRS.Combo.Q:Value() and Ready(_Q) then
-        CastSpell(HK_Q,_Q,target)
+        CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
     end
     if myHero.pos:DistanceTo(target.pos) < 900  and TRS.Combo.E:Value() and Ready(_E) then
-        CastSpell(HK_E,_E,target)
+        CastSpell(HK_E,_E,target,TYPE_CIRCULAR)
     end
 end
 
@@ -313,10 +309,10 @@ function Soraka:Clear()
 
 function Soraka:Harass()
     if myHero.pos:DistanceTo(target.pos) < 800 and (myHero.mana/myHero.maxMana > TRS.Harass.Mana:Value() / 100) and TRS.Harass.Q:Value() and Ready(_Q) then
-        CastSpell(HK_Q,_Q,target)
+        CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
     end
     if myHero.pos:DistanceTo(target.pos) < 925 and (myHero.mana/myHero.maxMana > TRS.Harass.Mana:Value() / 100) and TRS.Harass.E:Value() and Ready(_E) then
-        CastSpell(HK_E,_Q,target)
+        CastSpell(HK_E,_Q,target,TYPE_CIRCULAR)
     end
 end
 
@@ -324,10 +320,10 @@ function Soraka:Flee()
 	local target = GetTarget(925)
   	if not target then return end
     if myHero.pos:DistanceTo(target.pos) < 800 and TRS.Flee.Q:Value() and Ready(_Q) then
-        CastSpell(HK_Q,_Q,target)
+        CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
     end
     if myHero.pos:DistanceTo(target.pos) < 925  and TRS.Flee.E:Value() and Ready(_E) then
-        CastSpell(HK_E,_E,target)
+        CastSpell(HK_E,_E,target,TYPE_CIRCULAR)
     end
 	for i,ally in pairs(GetAllyHeroes()) do
 	if not ally.isMe then
@@ -402,13 +398,13 @@ function Soraka:KS()
   	if myHero.pos:DistanceTo(target.pos) < 925 and TRS.KS.E:Value() and Ready(_E) then
     	local Edamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_E).level + 0.4 * myHero.ap))
 	if Edamage > target.health then
-		CastSpell(HK_E,_E,target)
+		CastSpell(HK_E,_E,target,TYPE_CIRCULAR)
 	end
 	end
 	if myHero.pos:DistanceTo(target.pos) < 800 and TRS.KS.Q:Value() and Ready(_Q) then
     	local Qdamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_E).level + 0.35 * myHero.ap))
 	if 	Qdamage > target.health then
-  	CastSpell(HK_Q,_Q,target)
+  	CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
 	end
     end
 end
@@ -429,10 +425,10 @@ function Soraka:Misc()
     local target = GetTarget(925)
   	if not target then return end
     if Ready(_E) and self:IsChannelling(enemy) and TRS.Misc.CancelE:Value() then
-          CastSpell(HK_E,_E,target)
+          CastSpell(HK_E,_E,target,TYPE_CIRCULAR)
     end
 	if Ready(_E) and self:HasCC() and TRS.Misc.CCE:Value() then
-          CastSpell(HK_E,_E,target)
+          CastSpell(HK_E,_E,target,TYPE_CIRCULAR)
     end
 end
 
