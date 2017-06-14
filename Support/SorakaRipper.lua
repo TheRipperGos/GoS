@@ -399,7 +399,7 @@ function Soraka:Killsteal()
 	end
 	end
 	if myHero.pos:DistanceTo(target.pos) < 800 and TRS.Killsteal.Q:Value() and Ready(_Q) then
-    	local Qdamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_E).level + 0.35 * myHero.ap))
+    	local Qdamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap))
 	if 	Qdamage > target.health then
   	CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
 	end
