@@ -194,15 +194,15 @@ function Soraka:LoadMenu()
   	TRS.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
   	TRS.Combo:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
 	--------- Clear -----------------------------------------
-  	TRS:MenuElement({type = MENU, id = "LaneClear", name = "Lane Clear"})
-  	TRS.LaneClear:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
-    TRS.LaneClear:MenuElement({id = "HQ", name = "Minimum minions to hit by [Q]", value = 4, min = 1, max = 7})
-    TRS.LaneClear:MenuElement({id = "Mana", name = "Min mana to Clear (%)", value = 40, min = 0, max = 100})
+  	TRS:MenuElement({type = MENU, id = "Clear", name = "Lane Clear"})
+  	TRS.Clear:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+    	TRS.Clear:MenuElement({id = "HQ", name = "Minimum minions to hit by [Q]", value = 4, min = 1, max = 7})
+    	TRS.Clear:MenuElement({id = "Mana", name = "Min mana to Clear (%)", value = 40, min = 0, max = 100})
 	--------- Harass --------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Harass", name = "Harass"})
   	TRS.Harass:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
   	TRS.Harass:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
-    TRS.Harass:MenuElement({id = "Mana", name = "Min mana to Harass (%)", value = 40, min = 0, max = 100})
+    	TRS.Harass:MenuElement({id = "Mana", name = "Min mana to Harass (%)", value = 40, min = 0, max = 100})
 	--------- Flee ----------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Flee", name = "Flee"})
   	TRS.Flee:MenuElement({id ="Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
@@ -291,7 +291,7 @@ function Soraka:Combo()
 end
 
 function Soraka:Clear()
-  	if TRS.LaneClear.Q:Value() == false then return end
+  	if TRS.Clear.Q:Value() == false then return end
   	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
       	if minion.team ~= myHero.team and myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() then
