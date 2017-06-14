@@ -257,7 +257,7 @@ function Soraka:LoadMenu()
 	TRS.Drawings:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 0, 0, 255)})
 	--------- Prediction --------------------------------------------------------------------
 	TRS:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	TRS.Pred:MenuElement({id = "Chance", name = "Hitchance", value = 0.15, min = 0.1, max = 1, step = 0.05})
+	TRS.Pred:MenuElement({id = "Chance", name = "Hitchance", value = 0.0, min = 0.0, max = 1, step = 0.05})
 end
 
 function Soraka:Tick()
