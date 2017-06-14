@@ -66,7 +66,7 @@ function IsChannelling(unit)
 	if not Spells[unit.charName] then return false end
 	local result = false
 	for _, spell in pairs(Spells[unit.charName]) do
-		if unit:GetSpellData(spell.Key).level > 0 and (unit:GetSpellData(spell.Key).name == spell.SpellName or unit:GetSpellData(spell.Key).currentCd > unit:GetSpellData(spell.Key).cd - spell.Duration or (spell.Buff and self:GotBuff(unit,spell.Buff) > 0)) then
+		if unit:GetSpellData(spell.Key).level > 0 and (unit:GetSpellData(spell.Key).name == spell.SpellName or unit:GetSpellData(spell.Key).currentCd > unit:GetSpellData(spell.Key).cd - spell.Duration or (spell.Buff and HasBuff(unit,spell.Buff) > 0)) then
 				result = true
 				break
 		end
@@ -211,43 +211,43 @@ function Soraka:LoadMenu()
   	TRS:MenuElement({type = MENU, id = "Heal", name = "Heal"})
   	TRS.Heal:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
   	TRS.Heal:MenuElement({id = "Health", name = "Min Soraka Health (%)", value = 45, min = 5, max = 100})
-		for i = 1,Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if hero.team == myHero.team and not hero.isMe then
-				TRS.Heal:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
-			end
-		end
+	for i = 1,Game.HeroCount() do
+	local hero = Game.Hero(i)
+	if hero.team == myHero.team and not hero.isMe then
+		TRS.Heal:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
+	end
+	end
 	TRS.Heal:MenuElement({type = MENU, id = "HP", name = "HP settings"})
-		for i = 1,Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if hero.team == myHero.team and not hero.isMe then
-				TRS.Heal.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 85, min = 0, max = 100})
-			end
-		end
+	for i = 1,Game.HeroCount() do
+	local hero = Game.Hero(i)
+	if hero.team == myHero.team and not hero.isMe then
+		TRS.Heal.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 85, min = 0, max = 100})
+	end
+	end
 	--------- ULT ----------------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "ULT", name = "Ultimate"})
   	TRS.ULT:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.Icon})
   	TRS.ULT:MenuElement({id = "Health", name = "Max Soraka Health (%)", value = 20, min = 0, max = 100})
-		for i = 1,Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if hero.team == myHero.team and not hero.isMe then
-				TRS.ULT:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
-			end
-		end
+	for i = 1,Game.HeroCount() do
+	local hero = Game.Hero(i)
+	if hero.team == myHero.team and not hero.isMe then
+		TRS.ULT:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
+	end
+	end
 	TRS.ULT:MenuElement({type = MENU, id = "HP", name = "HP settings"})
-		for i = 1,Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if hero.team == myHero.team and not hero.isMe then
-				TRS.ULT.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 15, min = 0, max = 100})
-			end
-		end
+	for i = 1,Game.HeroCount() do
+	local hero = Game.Hero(i)
+	if hero.team == myHero.team and not hero.isMe then
+		TRS.ULT.HP:MenuElement({id = hero.networkID, name = hero.charName.." max HP (%)", value = 15, min = 0, max = 100})
+	end
+	end
 	--------- Killsteal -----------------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Killsteal", name = "Killsteal"})
   	TRS.Killsteal:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
   	TRS.Killsteal:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})                   
 	--------- Misc -----------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Misc", name = "Misc"})
-    TRS.Misc:MenuElement({id = "CCE", name = "Auto [E] if enemy has CC", value = true})
+    	TRS.Misc:MenuElement({id = "CCE", name = "Auto [E] if enemy has CC", value = true})
   	TRS.Misc:MenuElement({id = "CancelE", name = "Auto [E] Interrupter", value = true})
 	--------- Drawings --------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Drawings", name = "Drawings"})
@@ -273,15 +273,13 @@ function Soraka:Tick()
     end
 	self:AutoR()
 	self:Killsteal()
-	if Ready(_W) then
         self:Heal()
-	end
   	self:Misc()
 end
 	
 function Soraka:Combo()
-  	local target = GetTarget(925)
-  	if not target then return end
+    local target = GetTarget(925)
+    if not target then return end
     if myHero.pos:DistanceTo(target.pos) < 800 and TRS.Combo.Q:Value() and Ready(_Q) then
         CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
     end
@@ -291,16 +289,16 @@ function Soraka:Combo()
 end
 
 function Soraka:Clear()
-  	if TRS.Clear.Q:Value() == false then return end
-  	for i = 1, Game.MinionCount() do
+	if TRS.Clear.Q:Value() == false then return end
+	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
       	if minion.team ~= myHero.team and myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() then
-			if MinionsAround(minion.pos,235,200) >= TRS.Clear.HQ:Value() then
-				Control.CastSpell(HK_Q,minion.pos)
-				end
-			end
+		if MinionsAround(minion.pos,235,200) >= TRS.Clear.HQ:Value() then
+			Control.CastSpell(HK_Q,minion.pos)
 		end
 	end
+	end
+end
 
 function Soraka:Harass()
 	local target = GetTarget(925)
@@ -336,19 +334,21 @@ function Soraka:Flee()
 end
 
 function Soraka:Heal()
-  	if TRS.Heal.W:Value() == false then return end
-		for i = 1, Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if hero.team == myHero.team and not hero.isMe then
-		if myHero.pos:DistanceTo(hero.pos) < 550 then
-		if TRS.Heal[hero.networkID]:Value() then
-		if (hero.health/hero.maxHealth <= TRS.Heal.HP[hero.networkID]:Value() / 100) and (myHero.health/myHero.maxHealth >= TRS.Heal.Health:Value() / 100 ) and Ready(_W) and not HasBuff(myHero or hero,"recall") and not MapPosition:inBase(hero.pos) then
-			Control.CastSpell(HK_W,hero)	
+  if TRS.Heal.W:Value() == false then return end
+	for i = 1, Game.HeroCount() do
+	local hero = Game.Hero(i)
+	if hero.team == myHero.team and hero.isAlive and not hero.isMe then
+	if myHero.pos:DistanceTo(hero.pos) < 550 then
+	if TRS.Heal[hero.networkID]:Value() then
+	if (hero.health/hero.maxHealth <= TRS.Heal.HP[hero.networkID]:Value() / 100) and (myHero.health/myHero.maxHealth >= TRS.Heal.Health:Value() / 100 )
+	and Ready(_W) and not HasBuff(myHero or hero,"recall") and not MapPosition:inBase(hero.pos)
+	--[[and (hero.health + 50 + myHero:GetSpellData(_W).level * 30 + 0.6 * myHero.ap > hero.maxHealth)]] then -- thanks Raine
+		Control.CastSpell(HK_W,hero)	
 		return
-		end
-		end
-		end
-		end
+	end
+	end
+	end
+	end
 	end
 end
 
@@ -360,7 +360,7 @@ function Soraka:AutoR()
 		local hero = Game.Hero(i)
 		if hero.team == myHero.team then
 		if not hero.isMe then
-			if TRS.ULT[hero.networkID]:Value() and Ready(_R) and (hero.health/hero.maxHealth <= TRS.ULT.HP[hero.networkID]:Value() / 100) then
+			if TRS.ULT[hero.networkID]:Value() and Ready(_R) and (hero.health/hero.maxHealth <= TRS.ULT.HP[hero.networkID]:Value() / 100) and not MapPosition:inBase(hero.pos) then
 			if (HeroesAround(hero.pos,800,200) > 0) then
 			Control.CastSpell(HK_R)	
 			return
