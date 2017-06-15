@@ -2,7 +2,7 @@ require 'DamageLib'
 require 'Eternal Prediction'
 require '2DGeometry'
 
-local AioVersion = "v1.1"
+local AioVersion = "v1.11"
 --- Engine ---
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
@@ -102,6 +102,32 @@ local function PredMinimapCast(hotkey,slot,target,predmode)
 	if pred and pred.hitChance >= 0.25 then
 		Control.CastSpell(hotkey, pred.castPos:ToMM().x,pred.castPos:ToMM().y)
 	end
+end
+
+local function HasBuff(unit, buffname)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff.name == buffname and buff.count > 0 then 
+			return true
+		end
+	end
+	return false
+end
+
+local function ClosestToMouse(p1, p2) 
+	if GetDistance(mousePos, p1) > GetDistance(mousePos, p2) then return p2 else return p1 end
+end
+
+local function CircleCircleIntersection(c1, c2, r1, r2) 
+	local D = GetDistance(c1, c2)
+	if D > r1 + r2 or D <= math.abs(r1 - r2) then return nil end 
+	local A = (r1 * r2 - r2 * r1 + D * D) / (2 * D) 
+	local H = math.sqrt(r1 * r1 - A * A)
+	local Direction = (c2 - c1):Normalized() 
+	local PA = c1 + A * Direction 
+	local S1 = PA + H * Direction:Perpendicular() 
+	local S2 = PA - H * Direction:Perpendicular() 
+	return S1, S2 
 end
 --- Engine ---
 --- Ahri ---
@@ -695,7 +721,7 @@ end
 --- Lucian ---
 class "Lucian"
 
-local LucianVersion = "v1.0"
+local LucianVersion = "v1.1"
 
 function Lucian:__init()
 	self:LoadSpells()
@@ -720,6 +746,8 @@ function Lucian:LoadMenu()
 	Romanov.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
 	Romanov.Combo:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
 	Romanov.Combo:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
+	Romanov.Combo:MenuElement({id = "EM", name = "[E] Mode", drop = {"Kite","Mouse"}})
+	Romanov.Combo:MenuElement({id = "ER", name = "Custom [E] Range", value = 125, min = 125, max = 425})
 	Romanov.Combo:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon})
 	--- Clear ---
 	Romanov:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
@@ -766,23 +794,38 @@ end
 
 function Lucian:Combo()
 	local target = GetTarget(1200)
+	local Passive = HasBuff(myHero, "LucianPassiveBuff")
 	if not target then return end
 	if Romanov.Combo.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 900 then 
-		if myHero.pos:DistanceTo(target.pos) < 500 and myHero.attackData.state == STATE_WINDDOWN then
+		if myHero.pos:DistanceTo(target.pos) < 500 and not Passive then
 			Control.CastSpell(HK_Q,target)
 		elseif myHero.pos:DistanceTo(target.pos) > 500 then
 			self:ExtendedQ(target)
 		end
 	end
-	if Romanov.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 300 + myHero.range then
-		if myHero.pos:DistanceTo(target.pos) < myHero.range and not myHero.attackData.state ~= STATE_WINDDOWN then return end
-		Control.CastSpell(HK_E)
+	if Romanov.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 425 + myHero.range and (not Ready(_Q) or myHero.pos:DistanceTo(target.pos) > 500) then
+		if myHero.pos:DistanceTo(target.pos) < myHero.range and Passive then return end
+		if Romanov.Combo.EM:Value() == 1 then 
+			local c1, c2, r1, r2 = Vector(myHero.pos), Vector(target.pos), myHero.range, 525 
+			local O1, O2 = CircleCircleIntersection(c1, c2, r1, r2) 
+			if O1 or O2 then 
+				local pos = c1:Extended(Vector(ClosestToMouse(O1, O2)), Romanov.Combo.ER:Value())
+				Control.CastSpell(HK_E, pos) 
+			end 
+		elseif Romanov.Combo.EM:Value() == 2 then 
+			local pos = Vector(myHero.pos):Extended(mousePos, Romanov.Combo.ER:Value())
+			Control.CastSpell(HK_E, pos) 
+		end
 	end
-	if Romanov.Combo.W:Value() and Ready(_W)and myHero.pos:DistanceTo(target.pos) < 900 and target:GetCollision(W.width,W.speed,W.delay) == 0 then
-		if myHero.pos:DistanceTo(target.pos) < myHero.range and not myHero.attackData.state ~= STATE_WINDDOWN then return end
+	if Romanov.Combo.W:Value() and Ready(_W)and myHero.pos:DistanceTo(target.pos) < 900 and target:GetCollision(W.width,W.speed,W.delay) == 0 and not Ready(_Q) and not Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) < myHero.range and Passive then return end
 		PredCast(HK_W,_W,target,TYPE_LINE)
 	end
-	if Romanov.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1200 and target:GetCollision(R.width,R.speed,R.delay) == 0 then
+	if Romanov.Combo.W:Value() and Ready(_W)and myHero.pos:DistanceTo(target.pos) < 900 and target:GetCollision(W.width,W.speed,W.delay) == 0 and myHero.pos:DistanceTo(target.pos) > 500 and not Ready(_E) then
+		if myHero.pos:DistanceTo(target.pos) < myHero.range and Passive then return end
+		PredCast(HK_W,_W,target,TYPE_LINE)
+	end
+	if Romanov.Combo.R:Value() and Ready(_R) and myHero.pos:DistanceTo(target.pos) < 1200 and myHero.pos:DistanceTo(target.pos) > myHero.range and target:GetCollision(R.width,R.speed,R.delay) == 0 then
 		local Rdmg = CalcPhysicalDamage(myHero, target, ((5 + 15 * myHero:GetSpellData(_R).level + 0.2 * myHero.totalDamage + 0.1 * myHero.ap) * (15 + 5 * myHero:GetSpellData(_R).level)))
 		if Rdmg >= target.health * 1.5 and myHero:GetSpellData(_R).toggleState == 1 then
 			Control.CastSpell(HK_R,target)
@@ -793,11 +836,11 @@ end
 function Lucian:Harass()
 	if Romanov.Harass.Key:Value() == false then return end
 	if myHero.mana/myHero.maxMana < Romanov.Harass.Mana:Value() then return end
-	local winddown = myHero.attackData.state == STATE_WINDDOWN
+	local Passive = HasBuff(myHero, "LucianPassiveBuff")
 	local target = GetTarget(1200)
 	if not target then return end
 	if Romanov.Harass.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 900 then 
-		if myHero.pos:DistanceTo(target.pos) < 500 and myHero.attackData.state == STATE_WINDDOWN then
+		if myHero.pos:DistanceTo(target.pos) < 500 and not Passive then
 			Control.CastSpell(HK_Q,target)
 		elseif myHero.pos:DistanceTo(target.pos) > 500 then
 			self:ExtendedQ(target)
@@ -1163,6 +1206,212 @@ function Olaf:Draw()
 	end
 end
 --- Olaf ---
+--- Ziggs ---
+class "Ziggs"
+
+local ZiggsVersion = "v1.0"
+
+function Ziggs:__init()
+	self:LoadSpells()
+	self:LoadMenu()
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+end
+
+function Ziggs:LoadSpells()
+	Q = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width, icon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/5/5d/Bouncing_Bomb.png" }
+	W = { range = myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width, icon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/3/35/Satchel_Charge.png" }
+	E = { range = myHero:GetSpellData(_E).range, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width, icon = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/3/3a/Hexplosive_Minefield.png" }
+	R = { range = myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width, icon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/1/11/Mega_Inferno_Bomb.png" }
+end
+
+function Ziggs:LoadMenu()
+	Romanov = MenuElement({type = MENU, id = "Romanov", name = "Romanov AIO "..AioVersion})
+	--- Version ---
+	Romanov:MenuElement({name = "Ziggs", drop = {ZiggsVersion}, leftIcon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/5/55/ZiggsSquare.png"})
+	--- Combo ---
+	Romanov:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
+	Romanov.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+	Romanov.Combo:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
+	Romanov.Combo:MenuElement({id = "WHP", name = "Min HP to pull with [W]", value = 35, min = 0, max = 100})
+	Romanov.Combo:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
+	Romanov.Combo:MenuElement({id = "R", name = "Use [R] Finisher", value = true, leftIcon = R.icon})
+	--- Clear ---
+	Romanov:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
+	Romanov.Clear:MenuElement({id = "Key", name = "Toggle: Key", key = string.byte("A"), toggle = true})
+	Romanov.Clear:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+	Romanov.Clear:MenuElement({id = "Qhit", name = "[Q] Min Hit", value = 5, min = 1, max = 7})
+	Romanov.Clear:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
+	Romanov.Clear:MenuElement({id = "Ehit", name = "[E] Min Hit", value = 5, min = 1, max = 7})
+	Romanov.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear [%]", value = 0, min = 0, max = 100})
+	--- Harass ---
+	Romanov:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
+	Romanov.Harass:MenuElement({id = "Key", name = "Toggle: Key", key = string.byte("S"), toggle = true})
+	Romanov.Harass:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+	Romanov.Harass:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
+	Romanov.Harass:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
+	Romanov.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass [%]", value = 0, min = 0, max = 100})
+	--- Misc ---
+	Romanov:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})
+	Romanov.Misc:MenuElement({id = "Qks", name = "Killsecure [Q]", value = true, leftIcon = Q.icon})
+	Romanov.Misc:MenuElement({id = "Eks", name = "Killsecure [E]", value = true, leftIcon = E.icon})
+	--- Draw ---
+	Romanov:MenuElement({type = MENU, id = "Draw", name = "Draw Settings"})
+	Romanov.Draw:MenuElement({id = "Q", name = "Draw [Q] Range", value = true, leftIcon = Q.icon})
+	Romanov.Draw:MenuElement({id = "E", name = "Draw [E] Range", value = true, leftIcon = E.icon})
+	Romanov.Draw:MenuElement({id = "CT", name = "Clear Toggle", value = true})
+	Romanov.Draw:MenuElement({id = "HT", name = "Harass Toggle", value = true})
+	Romanov.Draw:MenuElement({id = "DMG", name = "Draw Combo Damage", value = true})
+	--- Hitchance ---
+	Romanov:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
+	Romanov.Pred:MenuElement({id = "Chance", name = "Hitchance", value = 0.15, min = 0.1, max = 1, step = 0.05})
+end
+
+function Ziggs:Tick()
+	local Mode = GetMode()
+	if Mode == "Combo" then
+		self:Combo()
+	elseif Mode == "Clear" then
+		self:Clear()
+	elseif Mode == "Harass" then
+		self:Harass()
+	end
+		self:Misc()
+end
+
+function Ziggs:Combo()
+	local target = GetTarget(975)
+	if target == nil then return end
+	if Romanov.Combo.R:Value() and Ready(_R)and myHero.pos:DistanceTo(target.pos) < 950 then
+		if self:GetComboDamage(target) > target.health then
+			Control.CastSpell(HK_R)
+		end
+	end
+	if Romanov.Combo.E:Value() and Ready(_E) and target:GetCollision(E.width,E.speed,E.delay) == 0 then
+		PredCast(HK_E,_E,target,TYPE_LINE)
+	end
+	if Romanov.Combo.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 880 then
+		PredCast(HK_Q,_Q,target,TYPE_LINE)
+	end
+	if Romanov.Combo.W:Value() and Ready(_W)and myHero.pos:DistanceTo(target.pos) < 700 then
+		Control.CastSpell(HK_W)
+	end
+end
+
+function Ziggs:Harass()
+	local target = GetTarget(975)
+	if Romanov.Harass.Key:Value() == false then return end
+	if myHero.mana/myHero.maxMana < Romanov.Harass.Mana:Value() then return end
+	if target == nil then return end
+	if Romanov.Harass.E:Value() and Ready(_E) then
+		PredCast(HK_E,_E,target,TYPE_LINE)
+	end
+	if Romanov.Harass.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 880 then
+		PredCast(HK_Q,_Q,target,TYPE_LINE)
+	end
+	if Romanov.Harass.W:Value() and Ready(_W)and myHero.pos:DistanceTo(target.pos) < 700 then
+		Control.CastSpell(HK_W)
+	end
+end
+
+function Ziggs:Clear()
+	if Romanov.Clear.Key:Value() == false then return end
+	if myHero.mana/myHero.maxMana < Romanov.Clear.Mana:Value() then return end
+	for i = 1, Game.MinionCount() do
+		local minion = Game.Minion(i)
+		if  minion and minion.team == 200 then
+			if Romanov.Clear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 880 and minion:GetCollision(Q.width,Q.speed,Q.delay) >= Romanov.Clear.Qhit:Value() then
+				PredCast(HK_Q,_Q,minion,TYPE_LINE)
+			end
+			if Romanov.Clear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 700 then
+				Control.CastSpell(HK_W)
+			end
+		elseif minion and minion.team == 300 then
+			if Romanov.Clear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 880 then
+				PredCast(HK_Q,_Q,minion,TYPE_LINE)
+			end
+			if Romanov.Clear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 700 then
+				Control.CastSpell(HK_W)
+			end
+		end
+	end
+end
+
+function Ziggs:Misc()
+	local target = GetTarget(975)
+	if target == nil then return end
+	if Romanov.Misc.Eks:Value() and Ready(_E) then
+		local Edmg = CalcMagicalDamage(myHero, target, (25 + 35 * myHero:GetSpellData(_E).level + 0.6 * myHero.ap))
+		if Edmg > target.health and target:GetCollision(E.width,E.speed,E.delay) == 0 then
+			PredCast(HK_E,_E,target,TYPE_LINE)
+		end
+	end
+	if Romanov.Misc.Qks:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 800 then
+		local Qdmg = CalcMagicalDamage(myHero, target, (15 + 25 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap)) + (15 + 25 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap)
+		if Qdmg > target.health then
+			PredCast(HK_Q,_Q,target,TYPE_LINE)
+		end
+	end
+end
+
+function Ziggs:GetComboDamage(unit)
+	local Total = 0
+	local Qdmg = CalcMagicalDamage(myHero, unit, (15 + 25 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap))
+	local Q2dmg = (15 + 25 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap)
+	local Wdmg = CalcMagicalDamage(myHero, unit, (15 + 25 * myHero:GetSpellData(_Q).level + 0.3 * myHero.ap))
+	local Edmg = CalcMagicalDamage(myHero, unit, (25 + 35 * myHero:GetSpellData(_E).level + 0.6 * myHero.ap))
+	local Rdmg = CalcMagicalDamage(myHero, unit, (30 + 40 * myHero:GetSpellData(_R).level + 0.25 * myHero.ap))
+	if Ready(_Q) then
+		Total = Total + Qdmg + Q2dmg
+	end
+	if Ready(_W) then
+		Total = Total + Wdmg
+	end
+	if Ready(_E) then
+		Total = Total + Edmg
+	end
+	if Ready(_R) then
+		Total = Total + Rdmg
+	end
+	return Total
+end
+
+function Ziggs:Draw()
+	if Romanov.Draw.Q:Value() and Ready(_Q) then Draw.Circle(myHero.pos, 880, 3,  Draw.Color(255,000, 075, 180)) end
+	if Romanov.Draw.E:Value() and Ready(_E) then Draw.Circle(myHero.pos, 975, 3,  Draw.Color(255,138, 162, 255)) end
+	if Romanov.Draw.CT:Value() then
+		local textPos = myHero.pos:To2D()
+		if Romanov.Clear.Key:Value() then
+			Draw.Text("Clear: On", 20, textPos.x - 33, textPos.y + 60, Draw.Color(255, 000, 255, 000)) 
+		else
+			Draw.Text("Clear: Off", 20, textPos.x - 33, textPos.y + 60, Draw.Color(255, 225, 000, 000)) 
+		end
+	end
+	if Romanov.Draw.HT:Value() then
+		local textPos = myHero.pos:To2D()
+		if Romanov.Harass.Key:Value() then
+			Draw.Text("Harass: On", 20, textPos.x - 40, textPos.y + 80, Draw.Color(255, 000, 255, 000)) 
+		else
+			Draw.Text("Harass: Off", 20, textPos.x - 40, textPos.y + 80, Draw.Color(255, 255, 000, 000)) 
+		end
+	end
+	if Romanov.Draw.DMG:Value() then
+		for i = 1, Game.HeroCount() do
+			local enemy = Game.Hero(i)
+			if enemy and enemy.isEnemy and not enemy.dead then
+				if OnScreen(enemy) then
+				local rectPos = enemy.hpBar
+					if self:GetComboDamage(enemy) < enemy.health then
+						Draw.Rect(rectPos.x , rectPos.y ,(tostring(math.floor(self:GetComboDamage(enemy)/enemy.health*100)))*((enemy.health/enemy.maxHealth)),10, Draw.Color(150, 000, 000, 255)) 
+					else
+						Draw.Rect(rectPos.x , rectPos.y ,((enemy.health/enemy.maxHealth)*100),10, Draw.Color(150, 255, 255, 000)) 
+					end
+				end
+			end
+		end
+	end
+end
+--- Ziggs ---
 --- Utility ---
 class "Utility"
 
