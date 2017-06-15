@@ -337,7 +337,7 @@ function Soraka:Heal()
   if TRS.Heal.W:Value() == false then return end
 	for i = 1, Game.HeroCount() do
 	local hero = Game.Hero(i)
-	if hero.team == myHero.team and hero.isAlive and not hero.isMe then
+	if hero.team == myHero.team and hero.isAlive and not hero.isMe and not myHero.dead then
 	if myHero.pos:DistanceTo(hero.pos) < 550 then
 	if TRS.Heal[hero.networkID]:Value() then
 	if (hero.health/hero.maxHealth <= TRS.Heal.HP[hero.networkID]:Value() / 100) and (myHero.health/myHero.maxHealth >= TRS.Heal.Health:Value() / 100 )
@@ -378,7 +378,7 @@ end
 function Soraka:Misc()
 	for i = 1, Game.HeroCount() do
 	local hero = Game.Hero(i)
-		if hero and hero.team ~= myHero.team and myHero.pos:DistanceTo(hero.pos) < 925 then
+		if hero and hero.isEnemy and myHero.pos:DistanceTo(hero.pos) < 925 then
 			if Ready(_E) and IsChannelling(hero) and TRS.Misc.CancelE:Value() then
 				  CastSpell(HK_E,_E,hero,TYPE_CIRCULAR)
 			end
@@ -396,12 +396,14 @@ function Soraka:Killsteal()
     	local Edamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_E).level + 0.4 * myHero.ap))
 	if Edamage > target.health then
 		CastSpell(HK_E,_E,target,TYPE_CIRCULAR)
+		return
 	end
 	end
 	if myHero.pos:DistanceTo(target.pos) < 800 and TRS.Killsteal.Q:Value() and Ready(_Q) then
     	local Qdamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap))
 	if 	Qdamage > target.health then
-  	CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
+  		CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
+		return
 	end
     end
 end
