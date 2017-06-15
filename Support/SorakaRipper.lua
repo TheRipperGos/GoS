@@ -211,10 +211,9 @@ function Soraka:LoadMenu()
   	TRS:MenuElement({type = MENU, id = "Heal", name = "Heal"})
   	TRS.Heal:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
   	TRS.Heal:MenuElement({id = "Health", name = "Min Soraka Health (%)", value = 45, min = 5, max = 100})
-	for i = 1,Game.HeroCount() do
-	local hero = Game.Hero(i)
-	if hero.team == myHero.team and not hero.isMe then
-		TRS.Heal:MenuElement({id = hero.networkID, name = hero.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..hero.charName..".png"})
+	for i,ally in pairs(GetAllyHeroes()) do
+	if ally.team == myHero.team and not ally.isMe then
+		TRS.Heal:MenuElement({id = ally.networkID, name = ally.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
 	end
 	end
 	TRS.Heal:MenuElement({type = MENU, id = "HP", name = "HP settings"})
@@ -273,7 +272,7 @@ function Soraka:Tick()
     end
 	self:AutoR()
 	self:Killsteal()
-        self:Heal()
+    self:Heal()
   	self:Misc()
 end
 	
@@ -295,6 +294,7 @@ function Soraka:Clear()
       	if minion.team ~= myHero.team and myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() then
 		if MinionsAround(minion.pos,235,200) >= TRS.Clear.HQ:Value() then
 			Control.CastSpell(HK_Q,minion.pos)
+			return
 		end
 	end
 	end
@@ -335,17 +335,13 @@ end
 
 function Soraka:Heal()
   if TRS.Heal.W:Value() == false then return end
-	for i = 1, Game.HeroCount() do
-	local hero = Game.Hero(i)
-	if hero.team == myHero.team and hero.isAlive and not hero.isMe and not myHero.dead then
-	if myHero.pos:DistanceTo(hero.pos) < 550 then
-	if TRS.Heal[hero.networkID]:Value() then
-	if (hero.health/hero.maxHealth <= TRS.Heal.HP[hero.networkID]:Value() / 100) and (myHero.health/myHero.maxHealth >= TRS.Heal.Health:Value() / 100 )
-	and Ready(_W) and not HasBuff(myHero or hero,"recall") and not MapPosition:inBase(hero.pos)
-	--[[and (hero.health + 50 + myHero:GetSpellData(_W).level * 30 + 0.6 * myHero.ap > hero.maxHealth)]] then -- thanks Raine
-		Control.CastSpell(HK_W,hero)	
-		return
-	end
+	for i,ally in pairs(GetAllyHeroes()) do
+	if Ready(_W) and not ally.isMe and not ally.dead then
+	if myHero.pos:DistanceTo(ally.pos) < 550 and TRS.Heal[ally.networkID]:Value() and not MapPosition:inBase(ally.pos) then
+	if (ally.health/ally.maxHealth <= TRS.Heal.HP[ally.networkID]:Value() / 100) and (myHero.health/myHero.maxHealth >= TRS.Heal.Health:Value() / 100) --[[and (ally.health + 50 + myHero:GetSpellData(_W).level * 30 + 0.6 * myHero.ap > ally.maxHealth) and not HasBuff(myHero or ally,"recall")]] then -- thanks Raine
+		print("Trying to Cast W")
+		Control.CastSpell(HK_W,ally.pos)
+--		return
 	end
 	end
 	end
@@ -368,7 +364,7 @@ function Soraka:AutoR()
 			end
 		else if (myHero.health/myHero.maxHealth <= TRS.ULT.Health:Value() / 100) and Ready(_R) and (HeroesAround(myHero.pos,800,200) > 0) then
 			Control.CastSpell(HK_R)
-			return
+--			return
 			end
 		end
 		end
