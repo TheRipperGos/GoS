@@ -33,10 +33,21 @@ local function HeroesAround(pos, range, team)
 	return Count
 end
 
-function HasBuff(unit, buffname)
+function GetBuffs(unit)
+	T = {}
+	for i = 0, unit.buffCount do
+		local Buff = unit:GetBuff(i)
+		if Buff.count > 0 then
+			table.insert(T, Buff)
+		end
+	end
+	return T
+end
+
+function HasBuff(unit, buffname, bufftype)
 	for i = 0, unit.buffCount do
 	local buff = unit:GetBuff(i)
-	if buff.name == buffname or buff.type == bufftype and buff.count > 0 and buff.duration > 0 then 
+	if buff.name == buffname and buff.type == bufftype and buff.count > 0 and buff.duration > 0 then 
 		return true
 	end
 	end
@@ -370,7 +381,7 @@ function Soraka:Misc()
 			if Ready(_E) and IsChannelling(hero) and TRS.Misc.CancelE:Value() then
 				  CastSpell(HK_E,_E,hero,TYPE_CIRCULAR)
 			end
-			if Ready(_E) and HasBuff(hero,5 or 8 or 9 or 10 or 11 or 21 or 22 or 24 or 28 or 29 or 31 or "recall" --[[cc]]) and TRS.Misc.CCE:Value() then
+			if Ready(_E) and HasBuff(hero,"recall" or "zhonyasringshield" or "willrevive",5 or 11 or 24 or 29 or 31 --[[cc]]) and TRS.Misc.CCE:Value() then
 				  CastSpell(HK_E,_E,hero,TYPE_CIRCULAR)
 			end
 		end
