@@ -1,7 +1,7 @@
 require 'DamageLib'
 require 'Eternal Prediction'
 
-local ScriptVersion = "BETA"
+local ScriptVersion = "v0.1a"
 --- Engine ---
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
@@ -333,16 +333,16 @@ function Karma:Combo()
 					Control.CastSpell(HK_W,target.pos)
 --					LastW
 				end
-				if TRS.Combo.R:Value() and Ready(_R) then
+				if TRS.Combo.R:Value() and Ready(_R) and Ready(_W or _E or _Q) then
 					Control.CastSpell(HK_R)
 				end
 				if TRS.Combo.E:Value() and Ready(_E) then
 					Control.CastSpell(HK_E,myHero)
 				end
 				if TRS.Combo.Q:Value() and Ready(_Q) and target:GetCollision(Q.width,Q.speed,Q.delay) == 0 then
-					if Game.Timer() - LastW > 2 then
+--					if Game.Timer() - LastW > 2 then
 						CastSpell(HK_Q,_Q,target,TYPE_LINE)
-					end
+--					end
 				end
 			else --myHero.pos:DistanceTo(target.pos) > 675 then
 				if myHero.pos:DistanceTo(target.pos) < 950 then
@@ -393,7 +393,6 @@ function Karma:Misc()
 		if TRS.Misc.Qks:Value() and Ready(_Q) then
 			local Qdmg = CalcMagicalDamage(myHero, target, ( 35 + 45 * myHero:GetSpellData(_Q).level + 0.6 * myHero.ap))
 			local Qrdmg = CalcMagicalDamage(myHero, target, ( 35 + 45 * myHero:GetSpellData(_Q).level + 25 + 50 * myHero:GetSpellData(_R).level + 0.9 * myHero.ap))
-			print("calculou damage")
 			if not self:HasBuff() and Qdmg > target.health then
 				CastSpell(HK_Q,_Q,target,TYPE_LINE)
 			if self:HasBuff() and Qrdmg > target.health then
@@ -414,7 +413,7 @@ function Karma:Shield()
 	if not Ready(_E) then return end
 	for i,ally in pairs(GetAllyHeroes()) do
 		if myHero.pos:DistanceTo(ally.pos) < 600 then
-			if TRS.Shield.Elist[ally.networkID]:Value() and Ready(_E) and HeroesAround(ally.pos, 500, 100) > 0 then
+			if TRS.Shield.Elist[ally.networkID]:Value() and Ready(_E) and HeroesAround(ally.pos, 500, 200) > 0 then
 				if (ally.health/ally.maxHealth <= TRS.Shield.minE[ally.networkID]:Value() / 100) then
 				Control.CastSpell(HK_E,ally)
 				end
@@ -477,7 +476,7 @@ Callback.Add("Load", function()
 	if not _G.Prediction_Loaded then return end
 	if _G[myHero.charName] then
 		_G[myHero.charName]()
-		print("THIS SCRIPT IS "..ScriptVersion..": "..myHero.charName.."  Loaded")
+		print("TRS "..ScriptVersion..": "..myHero.charName.."  Loaded")
 	else print ("TRS doens't support "..myHero.charName.." shutting down...") return
 	end
 end)
