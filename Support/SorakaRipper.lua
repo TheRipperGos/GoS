@@ -360,7 +360,7 @@ function Soraka:AutoR()
   	if TRS.ULT.R:Value() == false then return end
 	if not Ready(_R) then return end
 	for i,ally in pairs(GetAllyHeroes()) do
-		if not ally.isMe then
+		if not ally.isMe and not ally.dead then
 			if TRS.ULT[ally.networkID]:Value() and Ready(_R) and (ally.health/ally.maxHealth <= TRS.ULT.HP[ally.networkID]:Value() / 100) --[[and not MapPosition:inBase(hero.pos)]] then
 			if (HeroesAround(ally.pos,800,200) > 0) then
 			Control.CastSpell(HK_R)	
