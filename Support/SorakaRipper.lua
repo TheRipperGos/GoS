@@ -289,10 +289,10 @@ function Soraka:Combo()
     local target = GetTarget(925)
     if not target then return end
     if myHero.pos:DistanceTo(target.pos) < 800 and TRS.Combo.Q:Value() and Ready(_Q) then
-        CastSpell(HK_Q,_Q,target.pos,TYPE_CIRCULAR)
+        CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
     end
     if myHero.pos:DistanceTo(target.pos) < 900  and TRS.Combo.E:Value() and Ready(_E) then
-        CastSpell(HK_E,_E,target.pos,TYPE_CIRCULAR)
+        CastSpell(HK_E,_E,target,TYPE_CIRCULAR)
     end
 end
 
