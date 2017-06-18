@@ -147,106 +147,6 @@ local function CastMinimap(hotkey,slot,target,predmode)
 	end
 end
 
-local MissileSpells = {
-["Sion"] = {"SionEMissile"},
-["Velkoz"] = {"VelkozQMissile","VelkozQMissileSplit","VelkozWMissile","VelkozEMissile"},
-["Ahri"] = {"AhriOrbMissile","AhriOrbReturn","AhriSeduceMissile"},
-["Irelia"] = {"IreliaTranscendentBlades"},
-["Sona"] = {"SonaR"},
-["Illaoi"] = {"illaoiemis","illaoiemis",""},
-["Jhin"] = {"JhinWMissile","JhinRShotMis"},
-["Rengar"] = {"RengarEFinal"},
-["Zyra"] = {"ZyraQ","ZyraE","zyrapassivedeathmanager"},
-["TwistedFate"] = {"SealFateMissile"},
-["Shen"] = {"ShenE"},
-["Kennen"] = {"KennenShurikenHurlMissile1"},
-["Nami"] = {"namiqmissile","NamiRMissile"},
-["Xerath"] = {"xeratharcanopulse2","XerathArcaneBarrage2","XerathMageSpearMissile","xerathrmissilewrapper"},
-["Nocturne"] = {"NocturneDuskbringer"},
-["AurelionSol"] = {"AurelionSolQMissile","AurelionSolRBeamMissile"},
-["Lucian"] = {"LucianQ","LucianWMissile","lucianrmissileoffhand"},
-["Ivern"] = {"IvernQ"},
-["Tristana"] = {"RocketJump"},
-["Viktor"] = {"ViktorDeathRayMissile"},
-["Malzahar"] = {"MalzaharQ"},
-["Braum"] = {"BraumQMissile","braumrmissile"},
-["Tryndamere"] = {"slashCast"},
-["Malphite"] = {"UFSlash"},
-["Amumu"] = {"SadMummyBandageToss",""},
-["Janna"] = {"HowlingGaleSpell"},
-["Morgana"] = {"DarkBindingMissile"},
-["Ezreal"] = {"EzrealMysticShotMissile","EzrealEssenceFluxMissile","EzrealTrueshotBarrage"},
-["Kalista"] = {"kalistamysticshotmis"},
-["Blitzcrank"] = {"RocketGrabMissile",},
-["Chogath"] = {"Rupture"},
-["TahmKench"] = {"tahmkenchqmissile"},
-["LeeSin"] = {"BlindMonkQOne"},
-["Zilean"] = {"ZileanQMissile"},
-["Darius"] = {"DariusCleave","DariusAxeGrabCone"},
-["Ziggs"] = {"ZiggsQSpell","ZiggsQSpell2","ZiggsQSpell3","ZiggsW","ZiggsE","ZiggsR"},
-["Zed"] = {"ZedQMissile"},
-["Leblanc"] = {"LeblancSlide","LeblancSlideM","LeblancSoulShackle","LeblancSoulShackleM"},
-["Zac"] = {"ZacQ"},
-["Quinn"] = {"QuinnQ"},
-["Urgot"] = {"UrgotHeatseekingLineMissile","UrgotPlasmaGrenadeBoom"},
-["Cassiopeia"] = {"CassiopeiaQ","CassiopeiaR"},
-["Sejuani"] = {"sejuaniglacialprison"},
-["Vi"] = {"ViQMissile"},
-["Leona"] = {"LeonaZenithBladeMissile","LeonaSolarFlare"},
-["Veigar"] = {"VeigarBalefulStrikeMis"},
-["Varus"] = {"VarusQMissile","VarusE","VarusRMissile"},
-["Aatrox"] = {"","AatroxEConeMissile"},
-["Twitch"] = {"TwitchVenomCaskMissile"},
-["Thresh"] = {"ThreshQMissile","ThreshEMissile1"},
-["Diana"] = {"DianaArcThrow"},
-["Draven"] = {"DravenDoubleShotMissile","DravenR"},
-["Talon"] = {"talonrakemissileone","talonrakemissiletwo"},
-["JarvanIV"] = {"JarvanIVDemacianStandard"},
-["Gragas"] = {"GragasQMissile","GragasE","GragasRBoom"},
-["Lissandra"] = {"LissandraQMissile","lissandraqshards","LissandraEMissile"},
-["Swain"] = {"SwainShadowGrasp"},
-["Lux"] = {"LuxLightBindingMis","LuxLightStrikeKugel","LuxMaliceCannon"},
-["Gnar"] = {"gnarqmissile","GnarQMissileReturn","GnarBigQMissile","GnarBigW","GnarE","GnarBigE",""},
-["Bard"] = {"BardQMissile","BardR"},
-["Riven"] = {"RivenLightsaberMissile"},
-["Anivia"] = {"FlashFrostSpell"},
-["Karma"] = {"KarmaQMissile","KarmaQMissileMantra"},
-["Jayce"] = {"JayceShockBlastMis","JayceShockBlastWallMis"},
-["RekSai"] = {"RekSaiQBurrowedMis"},
-["Evelynn"] = {"EvelynnR"},
-["Sivir"] = {"SivirQMissileReturn","SivirQMissile"},
-["Shyvana"] = {"ShyvanaFireballMissile","ShyvanaTransformCast","ShyvanaFireballDragonFxMissile"},
-["Yasuo"] = {"yasuoq2","yasuoq3w","yasuoq"},
-["Corki"] = {"PhosphorusBombMissile","MissileBarrageMissile","MissileBarrageMissile2"},
-["Ryze"] = {"RyzeQ"},
-["Rumble"] = {"RumbleGrenade","RumbleCarpetBombMissile"},
-["Syndra"] = {"SyndraQ","syndrawcast","syndrae5","SyndraE"},
-["Khazix"] = {"KhazixWMissile","KhazixE"},
-["Taric"] = {"TaricE"},
-["Elise"] = {"EliseHumanE"},
-["Nidalee"] = {"JavelinToss"},
-["Olaf"] = {"olafaxethrow"},
-["Nautilus"] = {"NautilusAnchorDragMissile"},
-["Kled"] = {"KledQMissile","KledRiderQMissile"},
-["Brand"] = {"BrandQMissile"},
-["Ekko"] = {"ekkoqmis","EkkoW","EkkoR"},
-["Fiora"] = {"FioraWMissile"},
-["Graves"] = {"GravesQLineMis","GravesChargeShotShot"},
-["Galio"] = {"GalioResoluteSmite","GalioRighteousGust",""},
-["Ashe"] = {"VolleyAttack","EnchantedCrystalArrow"},
-["Kogmaw"] = {"KogMawQ","KogMawVoidOozeMissile","KogMawLivingArtillery"},
-["Skarner"] = {"SkarnerFractureMissile"},
-["Taliyah"] = {"TaliyahQMis","TaliyahW"},
-["Heimerdinger"] = {"HeimerdingerWAttack2","heimerdingerespell"},
-["Lulu"] = {"LuluQMissile","LuluQMissileTwo"},
-["DrMundo"] = {"InfectedCleaverMissile"},
-["Poppy"] = {"PoppyQ","PoppyRMissile"},
-["Caitlyn"] = {"CaitlynPiltoverPeacemaker","CaitlynEntrapmentMissile"},
-["Jinx"] = {"JinxWMissile","JinxR"},
-["Fizz"] = {"FizzRMissile"},
-["Kassadin"] = {"RiftWalk"},
-}
-
 class "Karma"
 
 function Karma:__init()
@@ -264,7 +164,7 @@ function Karma:LoadSpells()
 end
 
 function Karma:LoadMenu()
-	TRS = MenuElement({type = MENU, id = "Menu", name = "Karma The Enlightening", leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/Karma.png"})
+	TRS = MenuElement({type = MENU, id = "Menu", name = "Karma The Enlightening"..ScriptVersion.., leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/Karma.png"})
 	--- Combo ---
 	TRS:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
 	TRS.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
@@ -294,7 +194,7 @@ function Karma:LoadMenu()
 	for i,ally in pairs(GetAllyHeroes()) do
 		TRS.Shield.Elist:MenuElement({id = ally.networkID, name = ally.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
 	end
-	TRS.Shield:MenuElement({id = "minE", name = "Min HP to use [E]", value = true, leftIcon = E.icon})
+	TRS.Shield:MenuElement({type = MENU, id = "minE", name = "Min HP to use [E]", value = true, leftIcon = E.icon})
 		for i,ally in pairs(GetAllyHeroes()) do
 		TRS.Shield.minE:MenuElement({id = ally.networkID, name = ally.charName, value = 20, min = 1, max = 100, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
 	end
@@ -421,6 +321,19 @@ function Karma:Shield()
 		end
 	end
 	--auto protect missiles MeoBeo credits
+	self.MissileSpells = {}
+	for i = 1,Game.HeroCount() do
+		local hero = Game.Hero(i)
+		if hero.isEnemy then
+			if MissileSpells[hero.charName] then
+				for k,v in pairs(MissileSpells[hero.charName]) do
+					if #v > 1 then
+						self.MissileSpells[v] = true
+					end	
+				end
+			end
+		end
+	end
 	local enemy = true
 	if TRS.Shield.spellsE:Value() == false then return end
 	for i = 1,Game.HeroCount() do
@@ -432,7 +345,7 @@ function Karma:Shield()
 	if enemy then return end	
 	for i = 1, Game.MissileCount() do
 		local obj = Game.Missile(i)
-		if obj and obj.isEnemy and obj.missileData and MissileSpells[obj.missileData.name] then
+		if obj and obj.isEnemy and obj.missileData and self.MissileSpells[obj.missileData.name] then
 			local speed = obj.missileData.speed
 			local width = obj.missileData.width
 			local endPos = obj.missileData.endPos
