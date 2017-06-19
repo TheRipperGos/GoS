@@ -1,7 +1,7 @@
 require 'DamageLib'
 require 'Eternal Prediction'
 
-local ScriptVersion = "v0.2a"
+local ScriptVersion = "v0.5a"
 --- Engine ---
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
@@ -164,12 +164,11 @@ function Karma:LoadSpells()
 end
 
 function Karma:LoadMenu()
-	TRS = MenuElement({type = MENU, id = "Menu", name = "Karma The Enlightening"..ScriptVersion.., leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/Karma.png"})
+	TRS = MenuElement({type = MENU, id = "Menu", name = "Karma The Enlightening "..ScriptVersion.."", leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/Karma.png"})
 	--- Combo ---
 	TRS:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
 	TRS.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
 	TRS.Combo:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
-	TRS.Combo:MenuElement({id = "HP", name = "Min HP to [W]", value = 20, min = 0, max = 100})
 	TRS.Combo:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
 	TRS.Combo:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon})
 	--- Harass ---
@@ -189,16 +188,19 @@ function Karma:LoadMenu()
 	TRS.Misc:MenuElement({id = "Qinter", name = "Auto [Q] to interrupt", value = true, leftIcon = Q.icon})
 	--- Shield ---
 	TRS:MenuElement({type = MENU, id = "Shield", name = "Shield Settings"})
-	TRS.Shield:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
+	TRS.Shield:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon, leftIcon = E.icon})
 	TRS.Shield:MenuElement({type = MENU, id = "Elist", name = "Auto use [E] Whitelist"})
 	for i,ally in pairs(GetAllyHeroes()) do
 		TRS.Shield.Elist:MenuElement({id = ally.networkID, name = ally.charName, value = true, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
 	end
-	TRS.Shield:MenuElement({type = MENU, id = "minE", name = "Min HP to use [E]", value = true, leftIcon = E.icon})
+	TRS.Shield:MenuElement({type = MENU, id = "minE", name = "HP to auto use [E]", value = true})
 		for i,ally in pairs(GetAllyHeroes()) do
+		if not ally.isMe then
 		TRS.Shield.minE:MenuElement({id = ally.networkID, name = ally.charName, value = 20, min = 1, max = 100, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
+		end
+		TRS.Shield.minE:MenuElement({id = ally.networkID, name = myHero.charName, value = 20, min = 1, max = 100, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/Karma.png"})
 	end
-	TRS.Shield:MenuElement({id = "spellsE", name = "Auto Use [E] to shield spells", value = true, leftIcon = E.icon})
+	TRS.Shield:MenuElement({id = "spellsE", name = "Auto Use [E] to shield spells", value = true})
 	--- Draw ---
 	TRS:MenuElement({type = MENU, id = "Draw", name = "Draw Settings"})
 	TRS.Draw:MenuElement({id = "Q", name = "Draw [Q] Range", value = true, leftIcon = Q.icon})
@@ -229,14 +231,14 @@ function Karma:Combo()
 	local target = GetTarget(950)
 	if not target then return end
 			if myHero.pos:DistanceTo(target.pos) < 675 then
-				if TRS.Combo.W:Value() and Ready(_W) and (myHero.health/myHero.maxHealth >= TRS.Combo.HP:Value() / 100) then
+				if TRS.Combo.W:Value() and Ready(_W) then
 					Control.CastSpell(HK_W,target.pos)
 --					LastW
 				end
 				if TRS.Combo.R:Value() and Ready(_R) and Ready(_W or _E or _Q) then
 					Control.CastSpell(HK_R)
 				end
-				if TRS.Combo.E:Value() and Ready(_E) then
+				if TRS.Combo.E:Value() and Ready(_E and _Q or _W) then
 					Control.CastSpell(HK_E,myHero)
 				end
 				if TRS.Combo.Q:Value() and Ready(_Q) and target:GetCollision(Q.width,Q.speed,Q.delay) == 0 then
@@ -317,33 +319,15 @@ function Karma:Shield()
 				if (ally.health/ally.maxHealth <= TRS.Shield.minE[ally.networkID]:Value() / 100) then
 				Control.CastSpell(HK_E,ally)
 				end
-			end
-		end
-	end
-	--auto protect missiles MeoBeo credits
-	self.MissileSpells = {}
-	for i = 1,Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if hero.isEnemy then
-			if MissileSpells[hero.charName] then
-				for k,v in pairs(MissileSpells[hero.charName]) do
-					if #v > 1 then
-						self.MissileSpells[v] = true
-					end	
+				if (myHero.health/myHero.maxHealth <= TRS.Shield.minE[myHero.networkID]:Value() / 100) then
+				Control.CastSpell(HK_E,myHero)
 				end
 			end
 		end
 	end
-	local enemy = true
-	if TRS.Shield.spellsE:Value() == false then return end
-	for i = 1,Game.HeroCount() do
-		local hero = Game.Hero(i)
-		if hero.isEnemy then
-			enemy = false
-		end
-	end
-	if enemy then return end	
-	for i = 1, Game.MissileCount() do
+	if TRS.Shield.spellsE:Value() then
+	--auto protect missiles MeoBeo credits
+		for i = 1, Game.MissileCount() do
 		local obj = Game.Missile(i)
 		if obj and obj.isEnemy and obj.missileData and self.MissileSpells[obj.missileData.name] then
 			local speed = obj.missileData.speed
@@ -355,18 +339,40 @@ function Karma:Shield()
 					if not ally.dead and myHero.pos:DistanceTo(ally.pos) < 800 then
 						local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(pos,endPos,ally.pos)
 						if isOnSegment and ally.pos:DistanceTo(Vector(pointSegment.x,myHero.pos.y,pointSegment.y)) < width+ ally.boundingRadius then
-						CastSpell(HK_E,ally.pos)
+						CastSpell(HK_E,ally)
 						end
 					end
 				end
 			elseif pos then
 				for k,ally in pairs(GetAllyHeroes()) do
 					if not ally.dead and myHero.pos:DistanceTo(ally.pos) < 800 and pos:DistanceTo(ally.pos) < 80 then
-					CastSpell(HK_E,ally.pos)
+					CastSpell(HK_E,ally)
 					end
 				end
 			end
 		end
+	end
+	self.MissileSpells = {}
+	for i = 1,Game.HeroCount() do
+	local hero = Game.Hero(i)
+	if hero.isEnemy then
+		if HeroesAround(myHero.pos,1100,200) and hero.isChanneling then
+		local currSpell = hero.activeSpell
+		local sRadious = 100
+		local spellPos = Vector(currSpell.placementPos.x, currSpell.placementPos.y, currSpell.placementPos.z)
+		if (spellPos:DistanceTo(myHero.pos) < 100) then
+			Control.CastSpell(HK_E, myHero.pos)
+		end			
+	end
+		if self.MissileSpells[hero.charName] then
+			for k,v in pairs(self.MissileSpells[hero.charName]) do
+				if #v > 1 then
+				self.MissileSpells[v] = true
+				end	
+				end
+			end
+		end
+	end
 	end
 end
 
