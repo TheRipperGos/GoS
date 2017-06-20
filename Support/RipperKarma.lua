@@ -1,7 +1,7 @@
 require 'DamageLib'
 require 'Eternal Prediction'
 
-local ScriptVersion = "v0.5a"
+local ScriptVersion = "v0.7a"
 --- Engine ---
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
@@ -39,6 +39,16 @@ end
 
 local function GetDistance2D(p1,p2)
 return  math.sqrt(math.pow((p2.x - p1.x),2) + math.pow((p2.y - p1.y),2))
+end
+
+function VectorPointProjectionOnLineSegment(v1, v2, v)
+    local cx, cy, ax, ay, bx, by = v.x, (v.z or v.y), v1.x, (v1.z or v1.y), v2.x, (v2.z or v2.y)
+    local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) ^ 2 + (by - ay) ^ 2)
+    local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
+    local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
+    local isOnSegment = rS == rL
+    local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
+    return pointSegment, pointLine, isOnSegment
 end
 
 local _AllyHeroes
@@ -147,12 +157,114 @@ local function CastMinimap(hotkey,slot,target,predmode)
 	end
 end
 
+local MissileSpells = {
+["Sion"] = {"SionEMissile"},
+["Velkoz"] = {"VelkozQMissile","VelkozQMissileSplit","VelkozWMissile","VelkozEMissile"},
+["Ahri"] = {"AhriOrbMissile","AhriOrbReturn","AhriSeduceMissile"},
+["Irelia"] = {"IreliaTranscendentBlades"},
+["Sona"] = {"SonaR"},
+["Illaoi"] = {"illaoiemis","illaoiemis",""},
+["Jhin"] = {"JhinWMissile","JhinRShotMis"},
+["Rengar"] = {"RengarEFinal"},
+["Zyra"] = {"ZyraQ","ZyraE","zyrapassivedeathmanager"},
+["TwistedFate"] = {"SealFateMissile"},
+["Shen"] = {"ShenE"},
+["Kennen"] = {"KennenShurikenHurlMissile1"},
+["Nami"] = {"namiqmissile","NamiRMissile"},
+["Xerath"] = {"xeratharcanopulse2","XerathArcaneBarrage2","XerathMageSpearMissile","xerathrmissilewrapper"},
+["Nocturne"] = {"NocturneDuskbringer"},
+["AurelionSol"] = {"AurelionSolQMissile","AurelionSolRBeamMissile"},
+["Lucian"] = {"LucianQ","LucianWMissile","lucianrmissileoffhand"},
+["Ivern"] = {"IvernQ"},
+["Tristana"] = {"RocketJump"},
+["Viktor"] = {"ViktorDeathRayMissile"},
+["Malzahar"] = {"MalzaharQ"},
+["Braum"] = {"BraumQMissile","braumrmissile"},
+["Tryndamere"] = {"slashCast"},
+["Malphite"] = {"UFSlash"},
+["Amumu"] = {"SadMummyBandageToss",""},
+["Janna"] = {"HowlingGaleSpell"},
+["Morgana"] = {"DarkBindingMissile"},
+["Ezreal"] = {"EzrealMysticShotMissile","EzrealEssenceFluxMissile","EzrealTrueshotBarrage"},
+["Kalista"] = {"kalistamysticshotmis"},
+["Blitzcrank"] = {"RocketGrabMissile",},
+["Chogath"] = {"Rupture"},
+["TahmKench"] = {"tahmkenchqmissile"},
+["LeeSin"] = {"BlindMonkQOne"},
+["Zilean"] = {"ZileanQMissile"},
+["Darius"] = {"DariusCleave","DariusAxeGrabCone"},
+["Ziggs"] = {"ZiggsQSpell","ZiggsQSpell2","ZiggsQSpell3","ZiggsW","ZiggsE","ZiggsR"},
+["Zed"] = {"ZedQMissile"},
+["Leblanc"] = {"LeblancSlide","LeblancSlideM","LeblancSoulShackle","LeblancSoulShackleM"},
+["Zac"] = {"ZacQ"},
+["Quinn"] = {"QuinnQ"},
+["Urgot"] = {"UrgotHeatseekingLineMissile","UrgotPlasmaGrenadeBoom"},
+["Cassiopeia"] = {"CassiopeiaQ","CassiopeiaR"},
+["Sejuani"] = {"sejuaniglacialprison"},
+["Vi"] = {"ViQMissile"},
+["Leona"] = {"LeonaZenithBladeMissile","LeonaSolarFlare"},
+["Veigar"] = {"VeigarBalefulStrikeMis"},
+["Varus"] = {"VarusQMissile","VarusE","VarusRMissile"},
+["Aatrox"] = {"","AatroxEConeMissile"},
+["Twitch"] = {"TwitchVenomCaskMissile"},
+["Thresh"] = {"ThreshQMissile","ThreshEMissile1"},
+["Diana"] = {"DianaArcThrow"},
+["Draven"] = {"DravenDoubleShotMissile","DravenR"},
+["Talon"] = {"talonrakemissileone","talonrakemissiletwo"},
+["JarvanIV"] = {"JarvanIVDemacianStandard"},
+["Gragas"] = {"GragasQMissile","GragasE","GragasRBoom"},
+["Lissandra"] = {"LissandraQMissile","lissandraqshards","LissandraEMissile"},
+["Swain"] = {"SwainShadowGrasp"},
+["Lux"] = {"LuxLightBindingMis","LuxLightStrikeKugel","LuxMaliceCannon"},
+["Gnar"] = {"gnarqmissile","GnarQMissileReturn","GnarBigQMissile","GnarBigW","GnarE","GnarBigE",""},
+["Bard"] = {"BardQMissile","BardR"},
+["Riven"] = {"RivenLightsaberMissile"},
+["Anivia"] = {"FlashFrostSpell"},
+["Karma"] = {"KarmaQMissile","KarmaQMissileMantra"},
+["Jayce"] = {"JayceShockBlastMis","JayceShockBlastWallMis"},
+["RekSai"] = {"RekSaiQBurrowedMis"},
+["Evelynn"] = {"EvelynnR"},
+["Sivir"] = {"SivirQMissileReturn","SivirQMissile"},
+["Shyvana"] = {"ShyvanaFireballMissile","ShyvanaTransformCast","ShyvanaFireballDragonFxMissile"},
+["Yasuo"] = {"yasuoq2","yasuoq3w","yasuoq"},
+["Corki"] = {"PhosphorusBombMissile","MissileBarrageMissile","MissileBarrageMissile2"},
+["Ryze"] = {"RyzeQ"},
+["Rumble"] = {"RumbleGrenade","RumbleCarpetBombMissile"},
+["Syndra"] = {"SyndraQ","syndrawcast","syndrae5","SyndraE"},
+["Khazix"] = {"KhazixWMissile","KhazixE"},
+["Taric"] = {"TaricE"},
+["Elise"] = {"EliseHumanE"},
+["Nidalee"] = {"JavelinToss"},
+["Olaf"] = {"olafaxethrow"},
+["Nautilus"] = {"NautilusAnchorDragMissile"},
+["Kled"] = {"KledQMissile","KledRiderQMissile"},
+["Brand"] = {"BrandQMissile"},
+["Ekko"] = {"ekkoqmis","EkkoW","EkkoR"},
+["Fiora"] = {"FioraWMissile"},
+["Graves"] = {"GravesQLineMis","GravesChargeShotShot"},
+["Galio"] = {"GalioResoluteSmite","GalioRighteousGust",""},
+["Ashe"] = {"VolleyAttack","EnchantedCrystalArrow"},
+["Kogmaw"] = {"KogMawQ","KogMawVoidOozeMissile","KogMawLivingArtillery"},
+["Skarner"] = {"SkarnerFractureMissile"},
+["Taliyah"] = {"TaliyahQMis","TaliyahW"},
+["Heimerdinger"] = {"HeimerdingerWAttack2","heimerdingerespell"},
+["Lulu"] = {"LuluQMissile","LuluQMissileTwo"},
+["DrMundo"] = {"InfectedCleaverMissile"},
+["Poppy"] = {"PoppyQ","PoppyRMissile"},
+["Caitlyn"] = {"CaitlynPiltoverPeacemaker","CaitlynEntrapmentMissile"},
+["Jinx"] = {"JinxWMissile","JinxR"},
+["Fizz"] = {"FizzRMissile"},
+["Kassadin"] = {"RiftWalk"},
+}
+
 class "Karma"
 
 function Karma:__init()
 	self:LoadSpells()
 	self:LoadMenu()
+	self:LoadData()
 	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Tick",function() self:Shield() end)
 	Callback.Add("Draw", function() self:Draw() end)
 end
 
@@ -178,7 +290,6 @@ function Karma:LoadMenu()
 	--- Clear ---
 	TRS:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
 	TRS.Clear:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
-	TRS.Clear:MenuElement({id = "Minion", name = "Min Minions to [Q]", value = 3, min = 1, max = 5})
 	TRS.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear [Q]", value = 30, min = 0, max = 100})
 	--- Misc ---
 	TRS:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})	
@@ -197,8 +308,9 @@ function Karma:LoadMenu()
 		for i,ally in pairs(GetAllyHeroes()) do
 		if not ally.isMe then
 		TRS.Shield.minE:MenuElement({id = ally.networkID, name = ally.charName, value = 20, min = 1, max = 100, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
-		end
+		else
 		TRS.Shield.minE:MenuElement({id = ally.networkID, name = myHero.charName, value = 20, min = 1, max = 100, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/Karma.png"})
+		end
 	end
 	TRS.Shield:MenuElement({id = "spellsE", name = "Auto Use [E] to shield spells", value = true})
 	--- Draw ---
@@ -222,7 +334,6 @@ function Karma:Tick()
     	self:Flee()
     end
 	self:Misc()
-	self:Shield()
 end
 
 local LastW = Game.Timer()
@@ -353,7 +464,6 @@ function Karma:Shield()
 			end
 		end
 	end
-	self.MissileSpells = {}
 	for i = 1,Game.HeroCount() do
 	local hero = Game.Hero(i)
 	if hero.isEnemy then
@@ -365,15 +475,24 @@ function Karma:Shield()
 			Control.CastSpell(HK_E, myHero.pos)
 		end			
 	end
-		if self.MissileSpells[hero.charName] then
-			for k,v in pairs(self.MissileSpells[hero.charName]) do
-				if #v > 1 then
-				self.MissileSpells[v] = true
-				end	
+	end
+	end
+	end
+end
+
+function Karma:LoadData()
+	self.MissileSpells = {}
+	for i = 1,Game.HeroCount() do
+		local hero = Game.Hero(i)
+		if hero.isEnemy then
+			if MissileSpells[hero.charName] then
+				for k,v in pairs(MissileSpells[hero.charName]) do
+					if #v > 1 then
+						self.MissileSpells[v] = true
+					end	
 				end
 			end
 		end
-	end
 	end
 end
 
