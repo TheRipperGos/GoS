@@ -281,7 +281,7 @@ function Karma:Clear()
 	if myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() then return end
 	for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
-		if  minion.team = 200 or 300 then
+		if minion.team == 200 or 300 then
 			if  TRS.Clear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 950 then
 				Control.CastSpell(HK_Q,minion.pos)
 			end
@@ -397,6 +397,6 @@ Callback.Add("Load", function()
 	if _G[myHero.charName] then
 		_G[myHero.charName]()
 		print("TRS "..ScriptVersion..": "..myHero.charName.."  Loaded")
-	else print ("TRS doens't support "..myHero.charName.." shutting down...") return end
+	else print ("TRS doens't support "..myHero.charName.." shutting down...") return
 	end
 end)
