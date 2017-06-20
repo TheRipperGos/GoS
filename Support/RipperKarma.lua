@@ -1,7 +1,7 @@
 require 'DamageLib'
 require 'Eternal Prediction'
 
-local ScriptVersion = "v0.7a"
+local ScriptVersion = "BETA"
 --- Engine ---
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
@@ -9,6 +9,65 @@ end
 
 local function OnScreen(unit)
 	return unit.pos:To2D().onScreen;
+end
+
+local _AllyHeroes
+function GetAllyHeroes()
+  if _AllyHeroes then return _AllyHeroes end
+  _AllyHeroes = {}
+  for i = 1, Game.HeroCount() do
+    local unit = Game.Hero(i)
+    if unit.isAlly then
+      table.insert(_AllyHeroes, unit)
+    end
+  end
+  return _AllyHeroes
+end
+
+local _EnemyHeroes
+function GetEnemyHeroes()
+  if _EnemyHeroes then return _EnemyHeroes end
+  for i = 1, Game.HeroCount() do
+    local unit = Game.Hero(i)
+    if unit.isEnemy then
+	  if _EnemyHeroes == nil then _EnemyHeroes = {} end
+      table.insert(_EnemyHeroes, unit)
+    end
+  end
+  return {}
+end
+
+local _OnVision = {}
+function OnVision(unit)
+	if _OnVision[unit.networkID] == nil then _OnVision[unit.networkID] = {state = unit.visible , tick = GetTickCount(), pos = unit.pos} end
+	if _OnVision[unit.networkID].state == true and not unit.visible then _OnVision[unit.networkID].state = false _OnVision[unit.networkID].tick = GetTickCount() end
+	if _OnVision[unit.networkID].state == false and unit.visible then _OnVision[unit.networkID].state = true _OnVision[unit.networkID].tick = GetTickCount() end
+	return _OnVision[unit.networkID]
+end
+Callback.Add("Tick", function() OnVisionF() end)
+local visionTick = GetTickCount()
+function OnVisionF()
+	if GetTickCount() - visionTick > 100 then
+		for i,v in pairs(GetEnemyHeroes()) do
+			OnVision(v)
+		end
+	end
+end
+
+local _OnWaypoint = {}
+function OnWaypoint(unit)
+	if _OnWaypoint[unit.networkID] == nil then _OnWaypoint[unit.networkID] = {pos = unit.posTo , speed = unit.ms, time = Game.Timer()} end
+	if _OnWaypoint[unit.networkID].pos ~= unit.posTo then 
+		_OnWaypoint[unit.networkID] = {startPos = unit.pos, pos = unit.posTo , speed = unit.ms, time = Game.Timer()}
+			DelayAction(function()
+				local time = (Game.Timer() - _OnWaypoint[unit.networkID].time)
+				local speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+				if speed > 1250 and time > 0 and unit.posTo == _OnWaypoint[unit.networkID].pos and GetDistance(unit.pos,_OnWaypoint[unit.networkID].pos) > 200 then
+					_OnWaypoint[unit.networkID].speed = GetDistance2D(_OnWaypoint[unit.networkID].startPos,unit.pos)/(Game.Timer() - _OnWaypoint[unit.networkID].time)
+				end
+			end,0.05)
+	end
+	return _OnWaypoint[unit.networkID]
 end
 
 function MinionsAround(pos, range, team)
@@ -49,19 +108,6 @@ function VectorPointProjectionOnLineSegment(v1, v2, v)
     local isOnSegment = rS == rL
     local pointSegment = isOnSegment and pointLine or { x = ax + rS * (bx - ax), y = ay + rS * (by - ay) }
     return pointSegment, pointLine, isOnSegment
-end
-
-local _AllyHeroes
-function GetAllyHeroes()
-  if _AllyHeroes then return _AllyHeroes end
-  _AllyHeroes = {}
-  for i = 1, Game.HeroCount() do
-    local unit = Game.Hero(i)
-    if unit.isAlly then
-      table.insert(_AllyHeroes, unit)
-    end
-  end
-  return _AllyHeroes
 end
 
 function IsImmobileTarget(unit)
@@ -145,6 +191,29 @@ local function CastSpell(hotkey,slot,target,predmode)
 	local pred = spell:GetPrediction(target,myHero.pos)
 	if pred and pred.hitChance >= TRS.Pred.Chance:Value() then
 		Control.CastSpell(hotkey, pred.castPos)
+	end
+end
+
+local function GetPred(unit,speed,delay)
+	local speed = speed or math.huge
+	local delay = delay or 0.25
+	local unitSpeed = unit.ms
+	if OnWaypoint(unit).speed > unitSpeed then unitSpeed = OnWaypoint(unit).speed end
+	if OnVision(unit).state == false then
+		local unitPos = unit.pos + Vector(unit.pos,unit.posTo):Normalized() * ((GetTickCount() - OnVision(unit).tick)/1000 * unitSpeed)
+		local predPos = unitPos + Vector(unit.pos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(myHero.pos,unitPos)/speed)))
+		if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
+		return predPos
+	else
+		if unitSpeed > unit.ms then
+			local predPos = unit.pos + Vector(OnWaypoint(unit).startPos,unit.posTo):Normalized() * (unitSpeed * (delay + (GetDistance(myHero.pos,unit.pos)/speed)))
+			if GetDistance(unit.pos,predPos) > GetDistance(unit.pos,unit.posTo) then predPos = unit.posTo end
+			return predPos
+		elseif IsImmobileTarget(unit) then
+			return unit.pos
+		else
+			return unit:GetPrediction(speed,delay)
+		end
 	end
 end
 
@@ -282,20 +351,28 @@ function Karma:LoadMenu()
 	TRS.Combo:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
 	TRS.Combo:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
 	TRS.Combo:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon})
+	TRS.Combo:MenuElement({id = "WH", name = "Use Empowered [W] to heal", value = true, leftIcon = W.icon})
+	TRS.Combo:MenuElement({id = "Whp", name = "Use Empowered W < [%] HP", value = 25, min = 1, max = 100, leftIcon = W.icon}) 
 	--- Harass ---
 	TRS:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
-	TRS.Harass:MenuElement({id = "Key", name = "Use [Q]", value = true, leftIcon = Q.icon})
+	TRS.Harass:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+	TRS.Harass:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
+	TRS.Harass:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon})
+	TRS.Harass:MenuElement({id = "Whp", name = "Use Empowered W < [%] HP", value = 25, min = 1, max = 100, leftIcon = W.icon}) 
 	TRS.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass [%]", value = 0, min = 0, max = 100})
 	--- Clear ---
 	TRS:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
 	TRS.Clear:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
 	TRS.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear [Q]", value = 30, min = 0, max = 100})
+	---- Flee -----
+  	TRS:MenuElement({type = MENU, id = "Flee", name = "Flee"})
+  	TRS.Flee:MenuElement({id ="E", name = "Use [E]", value = true, leftIcon = E.icon})
+  	TRS.Flee:MenuElement({id ="R", name = "Use [R]", value = true, leftIcon = R.icon})
 	--- Misc ---
 	TRS:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})	
-	TRS.Misc:MenuElement({id = "Qks", name = "Killsteal [Q]", value = true, leftIcon = W.icon})
-	TRS.Misc:MenuElement({id = "Wks", name = "Killsteal [W]", value = true, leftIcon = R.icon})
-	TRS.Misc:MenuElement({id = "Qimbl", name = "Auto [Q] on Immobile", value = true, leftIcon = Q.icon})
-	TRS.Misc:MenuElement({id = "Qinter", name = "Auto [Q] to interrupt", value = true, leftIcon = Q.icon})
+	TRS.Misc:MenuElement({id = "Qks", name = "Killsteal [Q]", value = true, leftIcon = Q.icon})
+	TRS.Misc:MenuElement({id = "Wks", name = "Killsteal [W]", value = true, leftIcon = W.icon})
+	TRS.Misc:MenuElement({id = "Winter", name = "Auto [W] to interrupt", value = true, leftIcon = W.icon})
 	--- Shield ---
 	TRS:MenuElement({type = MENU, id = "Shield", name = "Shield Settings"})
 	TRS.Shield:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon, leftIcon = E.icon})
@@ -316,7 +393,7 @@ function Karma:LoadMenu()
 	TRS:MenuElement({type = MENU, id = "Draw", name = "Draw Settings"})
 	TRS.Draw:MenuElement({id = "Q", name = "Draw [Q] Range", value = true, leftIcon = Q.icon})
 	TRS.Draw:MenuElement({id = "W", name = "Draw [W] Range", value = true, leftIcon = W.icon})
-		--------- Prediction --------------------------------------------------------------------
+	--------- Prediction --------------------------------------------------------------------
 	TRS:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
 	TRS.Pred:MenuElement({id = "Chance", name = "Hitchance", value = 0.0, min = 0.0, max = 1, step = 0.05})
 end
@@ -329,76 +406,122 @@ function Karma:Tick()
 		self:Harass()
 	elseif Mode == "Clear" then
 		self:Clear()
---	elseif Mode == "Flee" then
- --   	self:Flee()
+	elseif Mode == "Flee" then
+    	self:Flee()
     end
 	self:Misc()
 	self:Shield()
 end
 
-local LastW = Game.Timer()
-
 function Karma:Combo()
-	local target = GetTarget(950)
+	local target = GetTarget(1000)
 	if not target then return end
-	if myHero.pos:DistanceTo(target.pos) < 670 then
-		if TRS.Combo.R:Value() and Ready(_R and _W or _E or _Q) then
-		Control.CastSpell(HK_R)
-		end
-		if TRS.Combo.W:Value() and Ready(_W) then
+	--[[	if TRS.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 670 then
+			if TRS.Combo.R:Value() and Ready(_R) then
+			Control.CastSpell(HK_R)
+			end
 			Control.CastSpell(HK_W,target.pos)
---		LastW
 		end
-		if TRS.Combo.E:Value() and Ready(_E and _Q or _W) then
+		if TRS.Combo.E:Value() and Ready(_E) and Ready(_W or _Q) then
+			if TRS.Combo.R:Value() and Ready(_R) then
+			Control.CastSpell(HK_R)
+			end
 			Control.CastSpell(HK_E,myHero)
 		end
-		if TRS.Combo.Q:Value() and Ready(_Q) and target:GetCollision(Q.width,Q.speed,Q.delay) == 0 then
---			if Game.Timer() - LastW > 2 then
-		CastSpell(HK_Q,_Q,target,TYPE_LINE)
---					end
-		end
-	else 
-	if myHero.pos:DistanceTo(target.pos) > 670 and myHero.pos:DistanceTo(target.pos) < 950 then
 		if TRS.Combo.Q:Value() and Ready(_Q) then
 			if TRS.Combo.R:Value() and Ready(_R) then
 			Control.CastSpell(HK_R)
 			end
-		CastSpell(HK_Q,_Q,target,TYPE_LINE)
-		return
-		end
-		if TRS.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 800 then
-			if TRS.Combo.R:Value() and Ready(_R) then
-			Control.CastSpell(HK_R)
+			CastSpell(HK_Q,_Q,target,TYPE_LINE)
+		end]]
+		---------------------------------
+		
+		if HeroesAround(target,200,200) <= 1 then
+			if Ready(_Q) and TRS.Combo.Q:Value() and myHero.pos:DistanceTo(target.pos) < 950 then
+				CastSpell(HK_Q,_Q,target,TYPE_LINE)
 			end
-		Control.CastSpell(HK_E,myHero)
-		return
 		end
-	end
-	end
+		if Ready(_W) and TRS.Combo.W:Value() and myHero.pos:DistanceTo(target.pos) < 675 then
+				Control.CastSpell(HK_W, Target)
+		end
+		if HeroesAround(myHero,1000,200) <= 1 then
+			if Ready(_R) and Ready(_Q) and TRS.Combo.Q:Value() and TRS.Combo.R:Value() then
+					Control.CastSpell(HK_R)
+					CastSpell(HK_Q,_Q,target,TYPE_LINE)
+			end
+		elseif HeroesAround(myHero,1000,200) >= 2 and HeroesAround(target,250,200) >= 2 then
+			if Ready(_R) and Ready(_Q) and TRS.Combo.Q:Value() and TRS.Combo.R:Value() then
+					Control.CastSpell(HK_R)
+					CastSpell(HK_Q,_Q,target,TYPE_LINE)
+			end
+		end
+		if (100 * myHero.health/myHero.maxHealth) <= TRS.Combo.Whp:Value() then
+			if Ready(_R) and Ready(_W) and TRS.Combo.W:Value() and TRS.Combo.WH:Value() then
+					Control.CastSpell(HK_R)
+					Control.CastSpell(HK_W,target)
+			end
+		end
+
+		---------------------------------
 end
 
 function Karma:Harass()
 	local target = GetTarget(950)
-	if TRS.Harass.Key:Value() == false then return end
-	if myHero.mana/myHero.maxMana < TRS.Harass.Mana:Value() then return end
 	if not target then return end
-	if TRS.Harass.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 and target:GetCollision(Q.width,Q.speed,Q.delay) == 0  then
-		CastSpell(HK_Q,_Q,target,TYPE_LINE)
-	end
+	if myHero.mana/myHero.maxMana < TRS.Harass.Mana:Value() then return end
+		if HeroesAround(target,950,200) <= 1 then
+			if Ready(_Q) and TRS.Harass.Q:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() and myHero.pos:DistanceTo(target.pos) < 950 then
+					CastSpell(HK_Q,_Q,target,TYPE_LINE)
+			end
+		end
+		if Ready(_W) and TRS.Harass.W:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() and myHero.pos:DistanceTo(target.pos) < 600 then
+				Control.CastSpell(HK_W,target)
+		end
+		if HeroesAround(myHero,1000,200) <= 1 then
+			if Ready(_R) and Ready(_Q) and TRS.Harass.Q:Value() and TRS.Harass.R:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() then
+					Control.CastSpell(HK_R)
+					CastSpell(HK_Q,_Q,target,TYPE_LINE)
+			end
+		elseif HeroesAround(myHero,1000,200) >= 2 and HeroesAround(target,200,200) >= 2 then
+			if Ready(_R) and Ready(_Q) and TRS.Harass.Q:Value() and TRS.Harass.R:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() then
+					Control.CastSpell(HK_R)
+					CastSpell(HK_Q,_Q,target,TYPE_LINE)
+			end
+		end
+		if (100 * myHero.health/myHero.maxHealth) <= TRS.Harass.Whp:Value() then
+			if Ready(_R) and Ready(_W) and TRS.Harass.W:Value() and TRS.Harass.R:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() then
+					Control.CastSpell(HK_R)
+					Control.CastSpell(HK_W,target)
+			end
+		end
 end
 
 function Karma:Clear()
 	if TRS.Clear.Q:Value() == false then return end
 	if myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() then return end
 	for i = 1, Game.MinionCount() do
-		local minion = Game.Minion(i)
-		if minion.team == 200 or 300 then
-			if  TRS.Clear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 950 then
-				Control.CastSpell(HK_Q,minion.pos)
-			end
+	local minion = Game.Minion(i)
+		if  Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 950 and minion.team == 200 or 300 and not minion.dead then
+			Control.CastSpell(HK_Q,minion.pos)
 		end
 	end
-end	
+end
+
+function Karma:Flee()
+    	if Ready(_E) then
+			if TRS.Flee.E:Value() then
+            Control.CastSpell(HK_E,myHero.pos)
+			end
+		end
+		if Ready(_R) and Ready(_E) then
+			if TRS.Flee.R:Value() then
+				if HeroesAround(myHero,600,100) >= 1 then
+					Control.CastSpell(HK_R)
+					DelayAction(function() Control.CastSpell(HK_E,myHero.pos) end, 2)
+		        end
+			end
+		end
+end
 
 function Karma:Misc()
 	local target = GetTarget(950)
@@ -419,6 +542,13 @@ function Karma:Misc()
 			Control.CastSpell(HK_W,target)
 		end
 	end
+	for i,hero in pairs(GetEnemyHeroes()) do
+		if hero and myHero.pos:DistanceTo(hero.pos) < 675 then
+			if Ready(_W) and hero.isChanneling--[[IsChannelling(hero)]] and TRS.Misc.Winter:Value() then
+				  Control.CastSpell(HK_W,hero)
+			end
+		end
+	end
 end
 
 function Karma:Shield()
@@ -427,11 +557,11 @@ function Karma:Shield()
 	-- Shield to low HP
 	for i,ally in pairs(GetAllyHeroes()) do
 		if myHero.pos:DistanceTo(ally.pos) < 600 and not ally.dead then
-			if TRS.Shield.Elist[ally.networkID]:Value() and HeroesAround(ally.pos, 500, 200) > 0 then
-				if (ally.health/ally.maxHealth <= TRS.Shield.minE[ally.networkID]:Value() / 100) and Ready(_E) then
+			if TRS.Shield.Elist[ally.networkID]:Value()then
+				if (ally.health/ally.maxHealth <= TRS.Shield.minE[ally.networkID]:Value() / 100) and Ready(_E) and HeroesAround(ally.pos,600,200) > 0 then
 				Control.CastSpell(HK_E,ally)
 				end
-				if (myHero.health/myHero.maxHealth <= TRS.Shield.minE[myHero.networkID]:Value() / 100) and Ready(_E) then
+				if (myHero.health/myHero.maxHealth <= TRS.Shield.minE[myHero.networkID]:Value() / 100) and Ready(_E) and HeroesAround(myHero.pos,600,200) > 0 then
 				Control.CastSpell(HK_E,myHero)
 				end
 			end
@@ -460,7 +590,7 @@ function Karma:Shield()
 				end
 			elseif pos then
 				for k,ally in pairs(GetAllyHeroes()) do
-					if not ally.dead and myHero.pos:DistanceTo(ally.pos) < 800 and pos:DistanceTo(ally.pos) < 80 and Ready(_E) then
+					if not ally.dead and myHero.pos:DistanceTo(ally.pos) < 800 and Ready(_E) then
 						if Ready(_R) then
 						Control.CastSpell(HK_R)
 						end
@@ -477,7 +607,7 @@ function Karma:Shield()
 		local currSpell = hero.activeSpell
 		local sRadious = 100
 		local spellPos = Vector(currSpell.placementPos.x, currSpell.placementPos.y, currSpell.placementPos.z)
-		if (spellPos:DistanceTo(myHero.pos) < 100) and Ready(_E) then
+		if (spellPos:DistanceTo(myHero.pos) < 75) and Ready(_E) then
 			Control.CastSpell(HK_E, myHero.pos)
 		end			
 	end
@@ -486,6 +616,7 @@ function Karma:Shield()
 	end
 end
 --meobeo credits here
+
 function Karma:LoadData()
 	self.MissileSpells = {}
 	for i = 1,Game.HeroCount() do
