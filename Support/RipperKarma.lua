@@ -417,26 +417,6 @@ end
 function Karma:Combo()
 	local target = GetTarget(950)
 	if not target then return end
-	--[[	if TRS.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 670 then
-			if TRS.Combo.R:Value() and Ready(_R) then
-			Control.CastSpell(HK_R)
-			end
-			Control.CastSpell(HK_W,target.pos)
-		end
-		if TRS.Combo.E:Value() and Ready(_E) and Ready(_W or _Q) then
-			if TRS.Combo.R:Value() and Ready(_R) then
-			Control.CastSpell(HK_R)
-			end
-			Control.CastSpell(HK_E,myHero)
-		end
-		if TRS.Combo.Q:Value() and Ready(_Q) then
-			if TRS.Combo.R:Value() and Ready(_R) then
-			Control.CastSpell(HK_R)
-			end
-			CastSpell(HK_Q,_Q,target,TYPE_LINE)
-		end]]
-		---------------------------------
-		
 		if HeroesAround(target,200,200) <= 1 then
 			if Ready(_Q) and TRS.Combo.Q:Value() and myHero.pos:DistanceTo(target.pos) < 950 then
 				CastSpell(HK_Q,_Q,target,TYPE_LINE)
@@ -462,8 +442,6 @@ function Karma:Combo()
 					Control.CastSpell(HK_W,target)
 			end
 		end
-
-		---------------------------------
 end
 
 function Karma:Harass()
