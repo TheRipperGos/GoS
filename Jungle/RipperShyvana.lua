@@ -152,7 +152,7 @@ function Shyvana:LoadMenu()
   	TRS.Combo:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
   	TRS.Combo:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon})
   	TRS.Combo:MenuElement({id = "RHP", name = "Max enemy HP to use [R] (%)", value = 65, min = 0, max = 100})
-    TRS.Combo:MenuElement({id = "ER", name = "Min enemies to use [R]", value = 1, min = 1, max = 5})
+    	TRS.Combo:MenuElement({id = "ER", name = "Min enemies to use [R]", value = 1, min = 1, max = 5})
 	-- LastHit ---------------------------------------------------------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "LastHit", name = "Last Hit"})
   	TRS.LastHit:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
@@ -172,15 +172,15 @@ function Shyvana:LoadMenu()
   	TRS.KS:MenuElement({id = "W", name = "Use W", value = true, leftIcon = W.icon})
   	TRS.KS:MenuElement({id = "E", name = "Use E", value = true, leftIcon = E.icon})
   	TRS.KS:MenuElement({id = "R", name = "Use R", value = true, leftIcon = R.icon})                     
-    TRS.KS:MenuElement({id = "ER", name = "Min enemies to use R", value = 3, min = 1, max = 5})
+    	TRS.KS:MenuElement({id = "ER", name = "Min enemies to use R", value = 3, min = 1, max = 5})
 	-- Harass ----------------------------------------------------------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Harass", name = "Harass"})
   	TRS.Harass:MenuElement({id = "E", name = "Use E", value = true, leftIcon = E.icon})
 	-- Misc ------------------------------------------------------------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Misc", name = "Misc"})
-    TRS.Misc:MenuElement({id = "SpeedW", name = "Use W for engage", value = false, leftIcon = W.icon})
+    	TRS.Misc:MenuElement({id = "SpeedW", name = "Use W for engage", value = false, leftIcon = W.icon})
   	TRS.Misc:MenuElement({id = "AutoR", name = "Auto R", value = false, leftIcon = R.icon})
-    TRS.Misc:MenuElement({id = "EAutoR", name = "Enemies to auto R", value = 4, min = 1, max = 5})
+    	TRS.Misc:MenuElement({id = "EAutoR", name = "Enemies to auto R", value = 4, min = 1, max = 5})
   	TRS.Misc:MenuElement({id = "Key", name = "Auto R Key", key = string.byte(" ")})
 	-- Drawings --------------------------------------------------------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Drawings", name = "Drawings"})
@@ -196,19 +196,21 @@ function Shyvana:Tick()
 		self:Combo()
 	elseif Mode == "Harass" then
 		self:Harass()
+	elseif Mode == "Lasthit" then
+		self:LastHitQ()
+		self:LastHitE()
 	elseif Mode == "Clear" then
 		self:Clear()
-    elseif Mode == "Flee" then
+	elseif Mode == "Flee" then
     	self:Flee()
-    elseif TRS.Misc.Key:Value() then
+	end
     	self:AutoR()
-    end
 	self:KS()
 end
 
 function Shyvana:Combo()
 	local target = GetTarget(1500)
-    if not target then return end 
+    	if not target then return end 
 	if myHero.pos:DistanceTo(target.pos) < 175 and TRS.Combo.W:Value() and Ready(_W) then
     	Control.CastSpell(HK_W)
     	end
@@ -242,7 +244,7 @@ function Shyvana:LastHitQ()
         Control.SetCursorPos(minion.pos)
         end
       	end
-    end
+    	end
 end  	
 
 function Shyvana:LastHitE()
@@ -257,15 +259,15 @@ function Shyvana:LastHitE()
         Control.CastSpell(HK_E,minion.pos)
         end
       	end
-    end
+    	end
 end  
 
 function Shyvana:LaneClear()
 	if TRS.Clear.Q:Value() == false then return end
   	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
-    if  minion.team == 200 or 300 then
-    if myHero.pos:DistanceTo(minion.pos) < 125 and TRS.Clear.Q:Value() and Ready(_Q) then
+    	if  minion.team == 200 or 300 then
+   	if myHero.pos:DistanceTo(minion.pos) < 125 and TRS.Clear.Q:Value() and Ready(_Q) then
 	Control.CastSpell(HK_Q)
 	return
 	end
@@ -277,8 +279,8 @@ function Shyvana:LaneClear()
 	Control.CastSpell(HK_E,minion.pos)
 	return
 	end
-    end
-    end
+    	end
+    	end
 end
 
 function Shyvana:Flee()
