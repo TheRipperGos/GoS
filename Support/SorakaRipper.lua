@@ -276,9 +276,9 @@ function Soraka:Tick()
 		self:Harass()
 	elseif Mode == "Clear" then
 		self:Clear()
-	elseif Mode == "Flee" then
+    elseif Mode == "Flee" then
     	self:Flee()
-	end
+    end
 	self:AutoR()
 	self:Killsteal()
     self:Heal()
@@ -358,7 +358,6 @@ end
 
 function Soraka:AutoR()
   	if TRS.ULT.R:Value() == false then return end
-	if not Ready(_R) then return end
 	for i,ally in pairs(GetAllyHeroes()) do
 		if not ally.isMe and not ally.dead then
 			if TRS.ULT[ally.networkID]:Value() and Ready(_R) and (ally.health/ally.maxHealth <= TRS.ULT.HP[ally.networkID]:Value() / 100) --[[and not MapPosition:inBase(hero.pos)]] then
@@ -367,7 +366,7 @@ function Soraka:AutoR()
 --			return
 			end
 			end
-		else if (myHero.health/myHero.maxHealth <= TRS.ULT.Health:Value() / 100) and Ready(_R) and (HeroesAround(myHero.pos,800,200) > 0) then
+		else if (myHero.health/myHero.maxHealth <= TRS.ULT.Health:Value() / 100) and Ready(_R) and (HeroesAround(myHero.pos,800,200) > 0) and not myHero.dead then
 			Control.CastSpell(HK_R)
 --			return
 			end
