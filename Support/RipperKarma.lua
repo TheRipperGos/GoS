@@ -173,7 +173,7 @@ function Karma:LoadMenu()
 	TRS.Combo:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon})
 	--- Harass ---
 	TRS:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
-	TRS.Harass:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+	TRS.Harass:MenuElement({id = "Key", name = "Use [Q]", value = true, leftIcon = Q.icon})
 	TRS.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass [%]", value = 0, min = 0, max = 100})
 	--- Clear ---
 	TRS:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
