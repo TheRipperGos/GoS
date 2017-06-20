@@ -144,7 +144,7 @@ function Shyvana:LoadSpells()
 end
 
 function Shyvana:LoadMenu()
-  	self.Menu = MenuElement({type = MENU, id = "Menu", name = "Shyvana The Ripper "..ScriptVersion.."", leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/Shyvana.png"})
+  	TRS = MenuElement({type = MENU, id = "Menu", name = "Shyvana The Ripper "..ScriptVersion.."", leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/Shyvana.png"})
 	-- Combo -----------------------------------------------------------------------------------------------------------------------
   	TRS:MenuElement({type = MENU, id = "Combo", name = "Combo"})
   	TRS.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
