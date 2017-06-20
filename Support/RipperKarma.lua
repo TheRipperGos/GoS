@@ -264,7 +264,6 @@ function Karma:__init()
 	self:LoadMenu()
 	self:LoadData()
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("Tick",function() self:Shield() end)
 	Callback.Add("Draw", function() self:Draw() end)
 end
 
@@ -330,10 +329,11 @@ function Karma:Tick()
 		self:Harass()
 	elseif Mode == "Clear" then
 		self:Clear()
-	elseif Mode == "Flee" then
-    	self:Flee()
+--	elseif Mode == "Flee" then
+ --   	self:Flee()
     end
 	self:Misc()
+	self:Shield()
 end
 
 local LastW = Game.Timer()
@@ -341,8 +341,8 @@ local LastW = Game.Timer()
 function Karma:Combo()
 	local target = GetTarget(950)
 	if not target then return end
-	if myHero.pos:DistanceTo(target.pos) < 675 then
-		if TRS.Combo.R:Value() and Ready(_R) and Ready(_W or _E or _Q) then
+	if myHero.pos:DistanceTo(target.pos) < 670 then
+		if TRS.Combo.R:Value() and Ready(_R and _W or _E or _Q) then
 		Control.CastSpell(HK_R)
 		end
 		if TRS.Combo.W:Value() and Ready(_W) then
@@ -358,7 +358,7 @@ function Karma:Combo()
 --					end
 		end
 	else 
-	if myHero.pos:DistanceTo(target.pos) < 950 then
+	if myHero.pos:DistanceTo(target.pos) > 670 and myHero.pos:DistanceTo(target.pos) < 950 then
 		if TRS.Combo.Q:Value() and Ready(_Q) then
 			if TRS.Combo.R:Value() and Ready(_R) then
 			Control.CastSpell(HK_R)
@@ -366,7 +366,7 @@ function Karma:Combo()
 		CastSpell(HK_Q,_Q,target,TYPE_LINE)
 		return
 		end
-		if TRS.Combo.E:Value() and Ready(_E) then
+		if TRS.Combo.E:Value() and Ready(_E) and myHero.pos:DistanceTo(target.pos) < 800 then
 			if TRS.Combo.R:Value() and Ready(_R) then
 			Control.CastSpell(HK_R)
 			end
@@ -398,7 +398,7 @@ function Karma:Clear()
 			end
 		end
 	end
-end
+end	
 
 function Karma:Misc()
 	local target = GetTarget(950)
@@ -406,10 +406,10 @@ function Karma:Misc()
 	if TRS.Misc.Qks:Value() and Ready(_Q) then
 		local Qdmg = CalcMagicalDamage(myHero, target, ( 35 + 45 * myHero:GetSpellData(_Q).level + 0.6 * myHero.ap))
 		local Qrdmg = CalcMagicalDamage(myHero, target, ( 35 + 45 * myHero:GetSpellData(_Q).level + 25 + 50 * myHero:GetSpellData(_R).level + 0.9 * myHero.ap))
-		if not self:HasMantra() and Qdmg > target.health and Ready(_Q) then
+		if not self:HasMantra() and Qdmg > target.health and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 then
 			CastSpell(HK_Q,_Q,target,TYPE_LINE)
 		end
-		if self:HasMantra() and Qrdmg > target.health and Ready(_Q) then
+		if self:HasMantra() and Qrdmg > target.health and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 then
 			CastSpell(HK_Q,_Q,target,TYPE_LINE)
 		end			
 	end
@@ -451,14 +451,20 @@ function Karma:Shield()
 					if not ally.dead and myHero.pos:DistanceTo(ally.pos) < 800 then
 						local pointSegment,pointLine,isOnSegment = VectorPointProjectionOnLineSegment(pos,endPos,ally.pos)
 						if isOnSegment and ally.pos:DistanceTo(Vector(pointSegment.x,myHero.pos.y,pointSegment.y)) < width+ ally.boundingRadius and Ready(_E) then
-						CastSpell(HK_E,ally)
+							if Ready(_R) then
+							Control.CastSpell(HK_R)
+							end
+						Control.CastSpell(HK_E,ally)
 						end
 					end
 				end
 			elseif pos then
 				for k,ally in pairs(GetAllyHeroes()) do
 					if not ally.dead and myHero.pos:DistanceTo(ally.pos) < 800 and pos:DistanceTo(ally.pos) < 80 and Ready(_E) then
-					CastSpell(HK_E,ally)
+						if Ready(_R) then
+						Control.CastSpell(HK_R)
+						end
+					Control.CastSpell(HK_E,ally)
 					end
 				end
 			end
@@ -479,7 +485,7 @@ function Karma:Shield()
 	end
 	end
 end
-
+--meobeo credits here
 function Karma:LoadData()
 	self.MissileSpells = {}
 	for i = 1,Game.HeroCount() do
