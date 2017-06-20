@@ -300,8 +300,8 @@ function Soraka:Clear()
 	if TRS.Clear.Q:Value() == false then return end
 	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
-      	if minion.team == 200 or 300 and myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() then
-		if MinionsAround(minion.pos,235,200) >= TRS.Clear.HQ:Value() then
+      	if myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() then
+		if MinionsAround(minion.pos,235,200) >= TRS.Clear.HQ:Value() and Ready(_Q) and minion.team == 200 or 300 then
 			Control.CastSpell(HK_Q,minion.pos)
 			return
 		end
