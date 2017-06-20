@@ -300,7 +300,7 @@ function Soraka:Clear()
 	if TRS.Clear.Q:Value() == false then return end
 	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
-      	if myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() then
+      	if myHero.pos:DistanceTo(minion.pos) < 800 and Ready(_Q) and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() then
 		if MinionsAround(minion.pos,235,200) >= TRS.Clear.HQ:Value() and Ready(_Q) and minion.team == 200 or 300 then
 			Control.CastSpell(HK_Q,minion.pos)
 			return
@@ -349,7 +349,7 @@ function Soraka:Heal()
 	if myHero.pos:DistanceTo(ally.pos) < 550 and TRS.Heal[ally.networkID]:Value() --[[and not MapPosition:inBase(ally.pos)]] then
 	if (ally.health/ally.maxHealth <= TRS.Heal.HP[ally.networkID]:Value() / 100) and (myHero.health/myHero.maxHealth >= TRS.Heal.Health:Value() / 100) --[[and (ally.health + 50 + myHero:GetSpellData(_W).level * 30 + 0.6 * myHero.ap > ally.maxHealth) and not HasBuff(myHero,"recall")]] and not ally.dead then -- thanks Raine
 		Control.CastSpell(HK_W,ally.pos)
---		return
+		return
 	end
 	end
 	end
