@@ -349,23 +349,24 @@ function Karma:LoadMenu()
 	TRS:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
 	TRS.Combo:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
 	TRS.Combo:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
-	TRS.Combo:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
-	TRS.Combo:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon})
 	TRS.Combo:MenuElement({id = "WH", name = "Use Empowered [W] to heal", value = true, leftIcon = W.icon})
-	TRS.Combo:MenuElement({id = "Whp", name = "Use Empowered W < [%] HP", value = 25, min = 1, max = 100, leftIcon = W.icon}) 
+	TRS.Combo:MenuElement({id = "Whp", name = "Use Empowered W < [%] HP", value = 30, min = 1, max = 100, leftIcon = W.icon})
+	TRS.Combo:MenuElement({id = "E", name = "Use [E]", value = true, leftIcon = E.icon})
+	TRS.Combo:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon}) 
 	--- Harass ---
 	TRS:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
 	TRS.Harass:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
 	TRS.Harass:MenuElement({id = "W", name = "Use [W]", value = true, leftIcon = W.icon})
 	TRS.Harass:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon})
-	TRS.Harass:MenuElement({id = "Whp", name = "Use Empowered W < [%] HP", value = 25, min = 1, max = 100, leftIcon = W.icon}) 
+	TRS.Harass:MenuElement({id = "Whp", name = "Use Empowered W < [%] HP", value = 40, min = 1, max = 100, leftIcon = W.icon}) 
 	TRS.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass [%]", value = 0, min = 0, max = 100})
 	--- Clear ---
 	TRS:MenuElement({type = MENU, id = "Clear", name = "Clear Settings"})
 	TRS.Clear:MenuElement({id = "Q", name = "Use [Q]", value = true, leftIcon = Q.icon})
+	TRS.Clear:MenuElement({id = "W", name = "Use [W] (jungle)", value = true, leftIcon = W.icon})
 	TRS.Clear:MenuElement({id = "Mana", name = "Min Mana to Clear [Q]", value = 30, min = 0, max = 100})
 	---- Flee -----
-  	TRS:MenuElement({type = MENU, id = "Flee", name = "Flee"})
+  	TRS:MenuElement({type = MENU, id = "Flee", name = "Flee Settings"})
   	TRS.Flee:MenuElement({id ="E", name = "Use [E]", value = true, leftIcon = E.icon})
   	TRS.Flee:MenuElement({id ="R", name = "Use [R]", value = true, leftIcon = R.icon})
 	--- Misc ---
@@ -414,7 +415,7 @@ function Karma:Tick()
 end
 
 function Karma:Combo()
-	local target = GetTarget(1000)
+	local target = GetTarget(950)
 	if not target then return end
 	--[[	if TRS.Combo.W:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 670 then
 			if TRS.Combo.R:Value() and Ready(_R) then
@@ -442,7 +443,7 @@ function Karma:Combo()
 			end
 		end
 		if Ready(_W) and TRS.Combo.W:Value() and myHero.pos:DistanceTo(target.pos) < 675 then
-				Control.CastSpell(HK_W, Target)
+				Control.CastSpell(HK_W,target)
 		end
 		if HeroesAround(myHero,1000,200) <= 1 then
 			if Ready(_R) and Ready(_Q) and TRS.Combo.Q:Value() and TRS.Combo.R:Value() then
@@ -455,7 +456,7 @@ function Karma:Combo()
 					CastSpell(HK_Q,_Q,target,TYPE_LINE)
 			end
 		end
-		if (100 * myHero.health/myHero.maxHealth) <= TRS.Combo.Whp:Value() then
+		if (100 * myHero.health/myHero.maxHealth) <= TRS.Combo.Whp:Value() and myHero.pos:DistanceTo(target.pos) < 675 then
 			if Ready(_R) and Ready(_W) and TRS.Combo.W:Value() and TRS.Combo.WH:Value() then
 					Control.CastSpell(HK_R)
 					Control.CastSpell(HK_W,target)
@@ -468,28 +469,28 @@ end
 function Karma:Harass()
 	local target = GetTarget(950)
 	if not target then return end
-	if myHero.mana/myHero.maxMana < TRS.Harass.Mana:Value() then return end
+	if (myHero.mana/myHero.maxMana < TRS.Harass.Mana:Value() / 100) then return end
 		if HeroesAround(target,950,200) <= 1 then
-			if Ready(_Q) and TRS.Harass.Q:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() and myHero.pos:DistanceTo(target.pos) < 950 then
+			if Ready(_Q) and TRS.Harass.Q:Value() and (myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() / 100) and myHero.pos:DistanceTo(target.pos) < 950 then
 					CastSpell(HK_Q,_Q,target,TYPE_LINE)
 			end
 		end
-		if Ready(_W) and TRS.Harass.W:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() and myHero.pos:DistanceTo(target.pos) < 600 then
+		if Ready(_W) and TRS.Harass.W:Value() and (myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() / 100) and myHero.pos:DistanceTo(target.pos) < 600 then
 				Control.CastSpell(HK_W,target)
 		end
 		if HeroesAround(myHero,1000,200) <= 1 then
-			if Ready(_R) and Ready(_Q) and TRS.Harass.Q:Value() and TRS.Harass.R:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() then
+			if Ready(_R) and Ready(_Q) and TRS.Harass.Q:Value() and TRS.Harass.R:Value() and (myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() / 100) then
 					Control.CastSpell(HK_R)
 					CastSpell(HK_Q,_Q,target,TYPE_LINE)
 			end
 		elseif HeroesAround(myHero,1000,200) >= 2 and HeroesAround(target,200,200) >= 2 then
-			if Ready(_R) and Ready(_Q) and TRS.Harass.Q:Value() and TRS.Harass.R:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() then
+			if Ready(_R) and Ready(_Q) and TRS.Harass.Q:Value() and TRS.Harass.R:Value() and (myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() / 100) then
 					Control.CastSpell(HK_R)
 					CastSpell(HK_Q,_Q,target,TYPE_LINE)
 			end
 		end
 		if (100 * myHero.health/myHero.maxHealth) <= TRS.Harass.Whp:Value() then
-			if Ready(_R) and Ready(_W) and TRS.Harass.W:Value() and TRS.Harass.R:Value() and myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() then
+			if Ready(_R) and Ready(_W) and TRS.Harass.W:Value() and TRS.Harass.R:Value() and (myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() / 100) then
 					Control.CastSpell(HK_R)
 					Control.CastSpell(HK_W,target)
 			end
@@ -497,20 +498,29 @@ function Karma:Harass()
 end
 
 function Karma:Clear()
-	if TRS.Clear.Q:Value() == false then return end
-	if myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() then return end
-	for i = 1, Game.MinionCount() do
-	local minion = Game.Minion(i)
-		if  Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 950 and minion.team == 200 or 300 and not minion.dead then
+    if (myHero.mana/myHero.maxMana < TRS.Clear.Mana:Value() / 100) then return end
+    for i = 1, Game.MinionCount() do
+    local minion = Game.Minion(i)
+    if minion and minion.team == 200 and not minion.dead then
+        if TRS.Clear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 950 then
+            Control.CastSpell(HK_Q,minion.pos)
+		end
+	elseif minion and minion.team == 300 and not minion.dead then
+		if TRS.Clear.Q:Value() and Ready(_Q) and myHero.pos:DistanceTo(minion.pos) < 950 then
 			Control.CastSpell(HK_Q,minion.pos)
 		end
-	end
+		if TRS.Clear.W:Value() and Ready(_W) and myHero.pos:DistanceTo(minion.pos) < 675 then
+			Control.CastSpell(HK_W,minion.pos)
+		end
+	end	
+end
 end
 
 function Karma:Flee()
-    	if Ready(_E) then
-			if TRS.Flee.E:Value() then
+    	if TRS.Flee.E:Value()then
+			if Ready(_E) then
             Control.CastSpell(HK_E,myHero.pos)
+			return
 			end
 		end
 		if Ready(_R) and Ready(_E) then
@@ -518,6 +528,7 @@ function Karma:Flee()
 				if HeroesAround(myHero,600,100) >= 1 then
 					Control.CastSpell(HK_R)
 					DelayAction(function() Control.CastSpell(HK_E,myHero.pos) end, 2)
+				return
 		        end
 			end
 		end
@@ -558,10 +569,10 @@ function Karma:Shield()
 	for i,ally in pairs(GetAllyHeroes()) do
 		if myHero.pos:DistanceTo(ally.pos) < 600 and not ally.dead then
 			if TRS.Shield.Elist[ally.networkID]:Value()then
-				if (ally.health/ally.maxHealth <= TRS.Shield.minE[ally.networkID]:Value() / 100) and Ready(_E) and HeroesAround(ally.pos,600,200) > 0 then
+				if (ally.health/ally.maxHealth <= TRS.Shield.minE[ally.networkID]:Value() / 100) and Ready(_E) and (HeroesAround(ally.pos,600,200) or MinionsAround(ally.pos,350,300) > 0 ) then
 				Control.CastSpell(HK_E,ally)
 				end
-				if (myHero.health/myHero.maxHealth <= TRS.Shield.minE[myHero.networkID]:Value() / 100) and Ready(_E) and HeroesAround(myHero.pos,600,200) > 0 then
+				if (myHero.health/myHero.maxHealth <= TRS.Shield.minE[myHero.networkID]:Value() / 100) and Ready(_E) and HeroesAround(myHero.pos,600,200) or MinionsAround(ally.pos,350,300) > 0 then
 				Control.CastSpell(HK_E,myHero)
 				end
 			end
