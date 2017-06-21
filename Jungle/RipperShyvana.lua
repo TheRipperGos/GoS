@@ -316,14 +316,14 @@ function Shyvana:KS()
   	if myHero.pos:DistanceTo(target.pos) < 175 and TRS.KS.W:Value() and Ready(_W) then
     	local level = myHero:GetSpellData(_W).level
     	local Wdamage = CalcMagicalDamage(myHero, target, (({20, 32, 45, 57, 70})[level] + 0.2 * myHero.totalDamage + 0.1 * myHero.ap))
-	if Wdamage >= target.health then
+	if Wdamage >= target.health + target.shieldAP + target.shieldAD then
   	Control.CastSpell(HK_W)
 	end
     end
   	if myHero.pos:DistanceTo(target.pos) < 825 and TRS.KS.E:Value() and Ready(_E) then
     	local level = myHero:GetSpellData(_E).level
     	local Edamage = CalcMagicalDamage(myHero, target, (({60, 100, 140, 180, 220})[level] + 0.3 * myHero.ap))
-	if Edamage >= target.health then
+	if Edamage >= target.health + target.shieldAP + target.shieldAD then
   	CastSpell(HK_E,_E,target,TYPE_LINE)
 	end
 	end
