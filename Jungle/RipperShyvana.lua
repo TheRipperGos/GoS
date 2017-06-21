@@ -262,7 +262,7 @@ function Shyvana:LastHitE()
     	end
 end  
 
-function Shyvana:LaneClear()
+function Shyvana:Clear()
 	if TRS.Clear.Q:Value() == false then return end
   	for i = 1, Game.MinionCount() do
 	local minion = Game.Minion(i)
