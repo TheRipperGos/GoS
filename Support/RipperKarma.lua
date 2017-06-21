@@ -518,16 +518,16 @@ function Karma:Misc()
 	if TRS.Misc.Qks:Value() and Ready(_Q) then
 		local Qdmg = CalcMagicalDamage(myHero, target, ( 35 + 45 * myHero:GetSpellData(_Q).level + 0.6 * myHero.ap))
 		local Qrdmg = CalcMagicalDamage(myHero, target, ( 35 + 45 * myHero:GetSpellData(_Q).level + 25 + 50 * myHero:GetSpellData(_R).level + 0.9 * myHero.ap))
-		if not self:HasMantra() and Qdmg > target.health and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 then
+		if not self:HasMantra() and Qdmg > target.health + target.shieldAP + target.shieldAD and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 then
 			CastSpell(HK_Q,_Q,target,TYPE_LINE)
 		end
-		if self:HasMantra() and Qrdmg > target.health and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 then
+		if self:HasMantra() and Qrdmg > target.health + target.shieldAP + target.shieldAD and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 then
 			CastSpell(HK_Q,_Q,target,TYPE_LINE)
 		end			
 	end
 	if TRS.Misc.Wks:Value() and Ready(_W) and myHero.pos:DistanceTo(target.pos) < 675 then
 		local Wdmg = CalcPhysicalDamage(myHero, target, (5 + 15 * myHero:GetSpellData(_W).level + myHero.totalDamage))
-		if Wdmg > target.health and target:GetCollision(W.width,W.speed,W.delay) == 0 and Ready(_W) then
+		if Wdmg > target.health + target.shieldAP + target.shieldAD and Ready(_W) then
 			Control.CastSpell(HK_W,target)
 		end
 	end
