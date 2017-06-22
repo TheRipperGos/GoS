@@ -1,7 +1,7 @@
 require 'DamageLib'
 require 'Eternal Prediction'
 
-local ScriptVersion = "alpha"
+local ScriptVersion = "alpha 0.1"
 --- Engine ---
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
@@ -169,6 +169,22 @@ local function Variables()
 		["Ult_D"]	= true,
 		["Ult_E"]	= true
 }
+	InterruptingSpells = {
+		["AbsoluteZero"]				= true,
+		["AlZaharNetherGrasp"]			= true,
+		["CaitlynAceintheHole"]			= true,
+		["Crowstorm"]					= true,
+		["DrainChannel"]				= true,
+		["FallenOne"]					= true,
+		["GalioIdolOfDurand"]			= true,
+		["InfiniteDuress"]				= true,
+		["KatarinaR"]					= true,
+		["MissFortuneBulletTime"]		= true,
+		["Teleport"]					= true,
+		["Pantheon_GrandSkyfall_Jump"]	= true,
+		["ShenStandUnited"]				= true,
+		["UrgotSwap2"]					= true
+}
 end
 
 class "Pantheon"
@@ -197,7 +213,7 @@ function Pantheon:LoadMenu()
 	TRS.Combo:MenuElement({id = "R", name = "Use [R]", value = true, leftIcon = R.icon})
 	--- Harass ---
 	TRS:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
-	TRS.Harass:MenuElement({id = "hMode", name = "Harass Mode", value = {"Q","W+E"}})
+	TRS.Harass:MenuElement({id = "hMode", name = "Harass Mode", value = 1, drop = {"Q","W+E"}})
 	TRS.Harass:MenuElement({id = "autoQ", name = "Auto [Q] when Target in Range", value = false, leftIcon = Q.icon})
 	TRS.Harass:MenuElement({id = "aQT", name = "Don't Auto [Q] if enemy Turret Range", value = true})
 	TRS.Harass:MenuElement({id = "Mana", name = "Min Mana to Harass [%]", value = 0, min = 0, max = 100})
@@ -210,7 +226,7 @@ function Pantheon:LoadMenu()
 	--- Misc ---
 	TRS:MenuElement({type = MENU, id = "Misc", name = "Misc Settings"})	
 	TRS.Misc:MenuElement({id = "ks", name = "Use Smart Killsecure", value = true})
---	TRS.Misc:MenuElement({id = "interrupt", name = "Interrupt Channeling Spells", value = true})
+	TRS.Misc:MenuElement({id = "interrupt", name = "Interrupt Channeling Spells", value = true})
 	TRS.Misc:MenuElement({type = MENU, id = "ult", name = "Ultimate Alerts"})
 		TRS.Misc.ult:MenuElement({id = "ultAlert", name = "Enable Ultimate Alert", value = true})
 		TRS.Misc.ult:MenuElement({id = "AlertTime", name = "Time to be shown", value = 3, min = 1, max = 10})
@@ -241,10 +257,10 @@ function Pantheon:Tick()
 end
 
 function Pantheon:OnProcessSpell(unit, spell)
-	if PanthMenu.misc.smisc.stopChannel then
-		if GetDistanceSqr(unit) <= SpellW.range * SpellW.range then
+	if TRS.Misc.interrupt:Value() then
+		if myHero.pos:DistanceTo(unit) < 600 then
 			if InterruptingSpells[spell.name] then
-				CastW(unit)
+				Control.CastSpell(HK_W,unit)
 			end
 		end
 	end
@@ -253,11 +269,9 @@ end
 function Pantheon:OnAnimation(unit, animationName)
 	if unit.isMe then 
 		if AnimationList[animationName] then
-			SxOrb:DisableAttacks()
-			SxOrb:DisableMove()
+			EnableOrb(false)
 		else
-			SxOrb:EnableAttacks()
-			SxOrb:EnableMove()
+			EnableOrb(true)
 		end
 	end
 end
