@@ -1,7 +1,7 @@
 require 'DamageLib'
 require 'Eternal Prediction'
 
-local ScriptVersion = "BETA"
+local ScriptVersion = "BETA v1"
 --- Engine ---
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
@@ -449,7 +449,7 @@ function Karma:Harass()
 	if not target then return end
 	if (myHero.mana/myHero.maxMana < TRS.Harass.Mana:Value() / 100) then return end
 		if HeroesAround(target,950,200) <= 1 then
-			if Ready(_Q) and TRS.Harass.Q:Value() and (myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() / 100) and myHero.pos:DistanceTo(target.pos) < 950 then
+			if Ready(_Q) and TRS.Harass.Q:Value() and (myHero.mana/myHero.maxMana > TRS.Clear.Mana:Value() / 100) and myHero.pos:DistanceTo(target.pos) < 950 and target:GetCollision(Q.width,Q.speed,Q.delay) == 0 then
 					CastSpell(HK_Q,_Q,target,TYPE_LINE)
 			end
 		end
@@ -518,10 +518,10 @@ function Karma:Misc()
 	if TRS.Misc.Qks:Value() and Ready(_Q) then
 		local Qdmg = CalcMagicalDamage(myHero, target, ( 35 + 45 * myHero:GetSpellData(_Q).level + 0.6 * myHero.ap))
 		local Qrdmg = CalcMagicalDamage(myHero, target, ( 35 + 45 * myHero:GetSpellData(_Q).level + 25 + 50 * myHero:GetSpellData(_R).level + 0.9 * myHero.ap))
-		if not self:HasMantra() and Qdmg > target.health and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 then
+		if not self:HasMantra() and Qdmg > target.health and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 and target:GetCollision(Q.width,Q.speed,Q.delay) == 0 then
 			CastSpell(HK_Q,_Q,target,TYPE_LINE)
 		end
-		if self:HasMantra() and Qrdmg > target.health and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 then
+		if self:HasMantra() and Qrdmg > target.health and Ready(_Q) and myHero.pos:DistanceTo(target.pos) < 950 and target:GetCollision(Q.width,Q.speed,Q.delay) == 0 then
 			CastSpell(HK_Q,_Q,target,TYPE_LINE)
 		end			
 	end
