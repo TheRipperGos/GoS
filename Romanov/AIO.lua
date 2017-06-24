@@ -660,7 +660,7 @@ function Ashe:Misc()
 			PredMinimapCast(HK_R,_R,target,TYPE_LINE)
 		end
 	end
-	if Romanov.Misc.Raoe:Value() and Ready(_R) and Romanov.Misc.Rene:Value() <=  HeroesAround(target.pos,125,200) and Romanov.Misc.Rally:Value() <=  AlliesAround(target.pos,600,100) then
+	if Romanov.Misc.Raoe:Value() and Ready(_R) and Romanov.Misc.Rene:Value() <=  HeroesAround(target.pos,125,200) and Romanov.Misc.Rally:Value() <=  HeroesAround(target.pos,600,100) then
 		if myHero.pos:DistanceTo(target.pos) > Romanov.Misc.Rmax:Value() then return end
 		if OnScreen(target) then
 			PredCast(HK_R,_R,target,TYPE_LINE)
