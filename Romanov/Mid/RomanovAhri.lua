@@ -217,7 +217,7 @@ end
 --// Menu
 local Ahri = MenuElement({type = MENU, id = "Ahri", name = "Romanov Ahri"})
 
-Ahri:MenuElement({id = "Script", name = "Ahri", drop = {"v2.0"}, leftIcon = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/1/18/AhriSquare.png"})
+Ahri:MenuElement({id = "Script", name = "Ahri", drop = {"v2.1"}, leftIcon = "https://vignette1.wikia.nocookie.net/leagueoflegends/images/1/18/AhriSquare.png"})
 Ahri:MenuElement({name = " ", drop = {"Champion Settings"}})
 Ahri:MenuElement({type = MENU, id = "C", name = "Combo"})
 Ahri:MenuElement({type = MENU, id = "H", name = "Harass"})
