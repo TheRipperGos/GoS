@@ -517,7 +517,9 @@ function Combo()
 end
 
 function Lane()
+	if Ahri.K.Clear:Value() == false then return end
     if Ahri.MM.LC:Value() > PercentMP(myHero) then return end
+	if 
     for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
         if minion and minion.team == 200 then
@@ -530,8 +532,10 @@ function Lane()
                 end
             end
             if Ready(_W) and ValidTarget(minion, W.Range) then
-                if MinionsAround(myHero.pos, 700, 200) >= Ahri.LC.WMin:Value() then
-                    Control.CastSpell(HK_W, BestPos)
+		if Ahri.LC.W:Value() then
+                	if MinionsAround(myHero.pos, 700, 200) >= Ahri.LC.WMin:Value() then
+                    		Control.CastSpell(HK_W, BestPos)
+			end
                 end
             end
         end
@@ -539,6 +543,7 @@ function Lane()
 end
 
 function Jungle()
+		if Ahri.K.Clear:Value() == false then return end
     if Ahri.MM.JC:Value() > PercentMP(myHero) then return end
     for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
@@ -564,6 +569,7 @@ function Jungle()
 end
 
 function Harass()
+	if Ahri.K.Harass:Value() == false then return end
     if Ahri.MM.H:Value() > PercentMP(myHero) then return end
     local target = GetTarget(E.Range)
     if target == nil then return end
