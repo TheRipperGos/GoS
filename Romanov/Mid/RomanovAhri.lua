@@ -519,7 +519,6 @@ end
 function Lane()
 	if Ahri.K.Clear:Value() == false then return end
     if Ahri.MM.LC:Value() > PercentMP(myHero) then return end
-	if 
     for i = 1, Game.MinionCount() do
 		local minion = Game.Minion(i)
         if minion and minion.team == 200 then
