@@ -251,7 +251,7 @@ Ahri.JC:MenuElement({id = "Q", name = "Q: Orb of Deception", value = true})
 Ahri.JC:MenuElement({id = "W", name = "W: Fox-Fire", value = true})
 Ahri.JC:MenuElement({id = "E", name = "E: Charm", value = false})
 
-Ahri.F:MenuElement({id = "E", name = "E: Hexplosive Minefield", value = true})
+Ahri.F:MenuElement({id = "E", name = "E: Charm", value = true})
 Ahri.F:MenuElement({id = "R", name = "R: Spirit Rush", drop = {"Walljump","Normal","Disabled"}})
 Ahri.F:MenuElement({id = "RS", name = "Use R only if already active", value = true})
 
