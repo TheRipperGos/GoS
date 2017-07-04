@@ -1,7 +1,7 @@
 require 'DamageLib'
 require 'Eternal Prediction'
 require "MapPosition"
-local ScriptVersion = "v0.7"
+local ScriptVersion = "v0.8"
 -- engine --
 local function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
@@ -162,11 +162,13 @@ local function EnableOrb(bool)
 end
 
 local function CastSpell(hotkey,slot,target,predmode)
-	local data = { range = myHero:GetSpellData(slot).range, delay = myHero:GetSpellData(slot).delay, speed = myHero:GetSpellData(slot).speed}
+	local data = { range = myHero:GetSpellData(slot).range, delay = myHero:GetSpellData(slot).delay, speed = myHero:GetSpellData(slot).speed, width = myHero:GetSpellData(slot).width}
 	local spell = Prediction:SetSpell(data, predmode, true)
 	local pred = spell:GetPrediction(target,myHero.pos)
 	if pred and pred.hitChance >= TRS.Pred.Chance:Value() then
+		EnableOrb(false)
 		Control.CastSpell(hotkey, pred.castPos)
+		EnableOrb(true)
 	end
 end
 
@@ -265,7 +267,8 @@ function Soraka:LoadMenu()
 	TRS.Drawings:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 0, 0, 255)})
 	--------- Prediction --------------------------------------------------------------------
 	TRS:MenuElement({type = MENU, id = "Pred", name = "Prediction Settings"})
-	TRS.Pred:MenuElement({id = "Chance", name = "Hitchance", value = 0.0, min = 0.0, max = 1, step = 0.05})
+	TRS.Pred:MenuElement({id = "QChance", name = "[Q] Hitchance", value = 0.125, min = 0.0, max = 1, step = 0.025})
+	TRS.Pred:MenuElement({id = "EChance", name = "[E] Hitchance", value = 0.125, min = 0.0, max = 1, step = 0.025})
 end
 
 function Soraka:Tick()
@@ -284,15 +287,37 @@ function Soraka:Tick()
     self:Heal()
   	self:Misc()
 end
+
+function Soraka:CastQ(target)
+    local data = { range = myHero:GetSpellData(_Q).range, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, width = myHero:GetSpellData(_Q).width}
+    local spell = Prediction:SetSpell(data, TYPE_CIRCULAR, false)
+    local pred = spell:GetPrediction(target,myHero.pos)
+    if pred and pred.hitChance >= TRS.Pred.QChance:Value() then
+	EnableOrb(false)
+	Control.CastSpell(HK_Q, pred.castPos)
+	EnableOrb(true)
+    end
+end
+
+function Soraka:CastE(target)
+    local data = { range = myHero:GetSpellData(_E).range, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width}
+    local spell = Prediction:SetSpell(data, TYPE_CIRCULAR, false)
+    local pred = spell:GetPrediction(target,myHero.pos)
+    if pred and pred.hitChance >= TRS.Pred.EChance:Value() then
+	EnableOrb(false)
+	Control.CastSpell(HK_E, pred.castPos)
+	EnableOrb(true)
+    end
+end
 	
 function Soraka:Combo()
-    local target = GetTarget(925)
+    local target = GetTarget(900)
     if not target then return end
     if myHero.pos:DistanceTo(target.pos) < 800 and TRS.Combo.Q:Value() and Ready(_Q) then
-        CastSpell(HK_Q,_Q,target,TYPE_CIRCULAR)
+        self.CastQ(target)
     end
     if myHero.pos:DistanceTo(target.pos) < 900  and TRS.Combo.E:Value() and Ready(_E) then
-        CastSpell(HK_E,_E,target,TYPE_CIRCULAR)
+        self.CastE(target)
     end
 end
 
