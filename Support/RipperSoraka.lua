@@ -8,7 +8,7 @@ local acos = math.acos
 local insert = table.insert
 local TEAM_JUNGLE = 300
 local TEAM_ENEMY = 300 - myHero.team
-local ScriptVersion = "v0.8"
+local ScriptVersion = "v1"
 -- engine --
 local function GetMode()
 	if _G.EOWLoaded then
