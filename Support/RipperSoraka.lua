@@ -8,7 +8,7 @@ local acos = math.acos
 local insert = table.insert
 local TEAM_JUNGLE = 300
 local TEAM_ENEMY = 300 - myHero.team
-local ScriptVersion = "v1"
+local ScriptVersion = "v1.5"
 -- engine --
 local function GetMode()
 	if _G.EOWLoaded then
@@ -369,11 +369,20 @@ local function ExcludeFurthest(average,lst,sTar)
 			return GetBestCircularCastPos(r, ExcludeFurthest(average, lst),s,d,sTar)
 		end
 	end
+
+keybindings = { [ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6}
+function GetInventorySlotItem(itemID)
+		assert(type(itemID) == "number", "GetInventorySlotItem: wrong argument types (<number> expected)")
+		for _, j in pairs({ ITEM_1, ITEM_2, ITEM_3, ITEM_4, ITEM_5, ITEM_6}) do
+			if myHero:GetItemData(j).itemID == itemID and myHero:GetSpellData(j).currentCd == 0 then return j end
+		end
+		return nil
+end
 -- engine --
 -- Soraka -- 
 class "Soraka"
 
-local SorakaVersion = "v1.0"
+local SorakaVersion = ScriptVersion
 
 function Soraka:__init()
   	self:LoadSpells()
@@ -381,13 +390,14 @@ function Soraka:__init()
   	self:LoadMenu()
   	Callback.Add("Tick", function() self:Tick() end)
   	Callback.Add("Draw", function() self:Draw() end)
+	if myHero.team == 100 then self.base = Vector(396,182.132507324219,462); else self.base = Vector(14340, 171.977722167969, 14390); end
 end
 
 function Soraka:LoadSpells()
   	Q = { range = 800, range2 = 640000, mrange = 1035, mrange2 = 1071225, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, speed2 = myHero:GetSpellData(_Q).speed * myHero:GetSpellData(_Q).speed ,width = 235, width2 = 55225, icon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/cd/Starcall.png" }
 	W = { range = myHero:GetSpellData(_W).range, range2 = myHero:GetSpellData(_W).range * myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width, width2 = myHero:GetSpellData(_W).width * myHero:GetSpellData(_W).width, icon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/6/6f/Astral_Infusion.png" }
 	E = { range = 925, range2 = 855625, mrange = 1160, mrange2 = 1345600, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, speed2 = myHero:GetSpellData(_E).speed * myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width, width2 = myHero:GetSpellData(_E).width * myHero:GetSpellData(_E).width, icon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/e/e7/Equinox.png" }
-	R = { range = myHero:GetSpellData(_R).range, range2 = myHero:GetSpellData(_R).range * myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width, width2 = myHero:GetSpellData(_R).width * myHero:GetSpellData(_R).width, icon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/f/f3/Wish.png" }
+	R = { range = myHero:GetSpellData(_R).range, range2 = myHero:GetSpellData(_R).range * myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width, width2 = myHero:GetSpellData(_R).width * myHero:GetSpellData(_R).width, icon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f3/Wish.png" }
 end
 
 function Soraka:LoadMissile()
@@ -445,11 +455,11 @@ function Soraka:LoadMenu()
 	TRS.Heal:MenuElement({type = MENU, id = "heroHP", name = "HP settings"})
 	for i,ally in pairs(GetAllyHeroes()) do
 	if ally.team == myHero.team and not ally.isMe then
-		TRS.Heal.heroHP:MenuElement({id = ally.networkID, name = "Min. "..ally.charName.." HP (%)", value = 60, min = 0, max = 100, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
+		TRS.Heal.heroHP:MenuElement({id = ally.networkID, name = "Min. "..ally.charName.." HP (%)", value = 70, min = 0, max = 100, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
 	end
 	end
 	--ULT
-  	TRS:MenuElement({type = MENU, id = "ULT", name = "Ultimate", leftIcon = R.Icon})
+  	TRS:MenuElement({type = MENU, id = "ULT", name = "Ultimate", leftIcon = R.icon})
   	TRS.ULT:MenuElement({id = "R", name = "Use [R]", value = true})
   	TRS.ULT:MenuElement({id = "myHealth", name = "Minimum Soraka Health (%)", value = 25, min = 0, max = 100})
 	TRS.ULT:MenuElement({type = MENU, id = "Heroes", name = "Heroes settings"})
@@ -461,9 +471,14 @@ function Soraka:LoadMenu()
 	TRS.ULT:MenuElement({type = MENU, id = "heroHP", name = "HP settings"})
 	for i,ally in pairs(GetAllyHeroes()) do
 		if not ally.isMe then
-			TRS.ULT.heroHP:MenuElement({id = ally.networkID, name = "Min. "..ally.charName.." HP (%)", value = 20, min = 0, max = 100, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
+			TRS.ULT.heroHP:MenuElement({id = ally.networkID, name = "Min. "..ally.charName.." HP (%)", value = 30, min = 0, max = 100, leftIcon = "https://raw.githubusercontent.com/TheRipperGos/GoS/master/Sprites/"..ally.charName..".png"})
 		end
-	end              
+	end    
+	--Items
+	TRS:MenuElement({type = MENU, id = "Items", name = "Items"})
+	TRS.Items:MenuElement({type = MENU, id = "Red", name = "Redemption"})
+		TRS.Items.Red:MenuElement({id = "ONRed", name = "Use Redemption", value = true})
+		TRS.Items.Red:MenuElement({id = "myHealth", name = "Minimum Soraka Health (%)", value = 20, min = 0, max = 100})
 	--Drawings
   	TRS:MenuElement({type = MENU, id = "Drawings", name = "Drawings Settings"})
   	TRS.Drawings:MenuElement({id = "Q", name = "Draw [Q] range", value = true, leftIcon = Q.icon})
@@ -488,6 +503,7 @@ function Soraka:Tick()
 	self:Killsteal()
     self:Heal()
   	self:Misc()
+	self:Items()
 	end
 end
 
@@ -496,14 +512,14 @@ function Soraka:Combo()
 	if target == nil then
 	return 
 	end 
-	if TRS.E.Ecombo:Value() and Ready(_E) then
+	if TRS.E.Ecombo:Value() and Ready(_E) and myHero.pos:DistanceTo(target) <= 800 then
 		local h = myHero.pos
 		local bR = target.boundingRadius
 		local F = IsFacing(target)
 		local list = HeroesAround(h,E.range2,TEAM_ENEMY)
 		local Pos, Count = GetBestCircularCastPos(E.width2,list,E.speed,E.delay,target)
 		local Dist = GetDistanceSqr(Pos, h)
-		print(target.type)
+--		print(target.type)
     	if F and Dist - bR * bR < E.range2 then 
     		Control.CastSpell(HK_E, Pos)
     	elseif Dist - bR * bR < 0.95*E.range2 then 
@@ -623,11 +639,15 @@ end
 function Soraka:Heal()
 if TRS.Heal.W:Value() == false then return end
 	if Ready(_W) and (myHero.mana/myHero.maxMana > TRS.Heal.Mana:Value() / 100) then
+	local Tard_Pos = myHero.pos
+    local Tard_distance = GetDistanceSqr(Tard_Pos, self.base)
+    if Tard_distance < (self.base.y*self.base.y)  then return end  
 	local ally = GetHeal(TRS.Heal.Wmode:Value())
 	if ally == nil then return end
-		if (myHero.health/myHero.maxHealth >= TRS.Heal.myHealth:Value() / 100) and (ally.health + 50 + myHero:GetSpellData(_W).level * 30 + 0.6 * myHero.ap <= ally.maxHealth) and not HasBuff(myHero,"recall") then
+		if (myHero.health/myHero.maxHealth >= TRS.Heal.myHealth:Value() / 100) then
+		if (ally.health/ally.maxHealth  < TRS.Heal.heroHP[ally.networkID]:Value()/100) and (ally.health + 50 + myHero:GetSpellData(_W).level * 30 + 0.6 * myHero.ap <= ally.maxHealth) and not HasBuff(myHero,"recall") then
 			Control.CastSpell(HK_W,ally)
-		return
+		end
 		end
 		for i = 1, Game.MissileCount() do
 		local obj = Game.Missile(i)
@@ -679,15 +699,15 @@ function Soraka:AutoR()
 		if not ally.isMe and not ally.dead then
 			if TRS.ULT.Heroes[ally.networkID]:Value() and Ready(_R) then
 			if(ally.health/ally.maxHealth <= TRS.ULT.heroHP[ally.networkID]:Value() / 100) then
-			local lista = HeroesAround(a,1000,TEAM_ENEMY)
+			local lista = HeroesAround(a,2000,TEAM_ENEMY)
 			if #lista > 0 then
 			Control.CastSpell(HK_R)	
 --			return
 			end
-			end
-			end
+		end
+		end
 		if (myHero.health/myHero.maxHealth <= TRS.ULT.myHealth:Value() / 100) and Ready(_R) and not myHero.dead then
-			local liste = HeroesAround(h,1000,TEAM_ENEMY)
+			local liste = HeroesAround(h,2000,TEAM_ENEMY)
 			if #liste > 0 then
 			Control.CastSpell(HK_R)
 			end
@@ -767,6 +787,39 @@ function Soraka:Killsteal()
     	end
 		return end
     end
+end
+
+
+function Soraka:Items()
+	if TRS.Items.Red.ONRed:Value() == false then return end
+	local redemption = GetInventorySlotItem(3107) or GetInventorySlotItem(3382)
+	if redemption then	
+	local Rwidth2 = myHero:GetSpellData(redemption).width * myHero:GetSpellData(redemption).width
+	local Rspeed = myHero:GetSpellData(redemption).speed
+	local Rdelay = myHero:GetSpellData(redemption).delay
+	if (myHero.health/myHero.maxHealth <= TRS.Items.Red.myHealth:Value() / 100) then
+			local list = HeroesAround(myHero.pos,1000000,myHero.team)
+			local Pos = GetBestCircularCastPos(Rwidth2,list,Rspeed,Rdelay,myHero)
+				Control.CastSpell(keybindings[redemption],Pos)
+	end
+	local target = GetTarget(5500)
+	if target then
+		if (target.health/target.maxHealth <= 10/100) then
+		local lista = HeroesAround(myHero.pos,1000000,TEAM_ENEMY)
+		local Pos = GetBestCircularCastPos(Rwidth2,lista,Rspeed,Rdelay,target)
+			Control.CastSpell(keybindings[redemption],Pos)
+		end
+		end
+	for i,ally in pairs(GetAllyHeroes()) do
+		if not ally.isMe then
+			if(ally.health/ally.maxHealth <= TRS.ULT.heroHP[ally.networkID]:Value() + 20 / 100) then
+				local listo = HeroesAround(myHero.pos,1000000,myHero.team)
+				local Pos = GetBestCircularCastPos(Rwidth2,listo,Rspeed,Rdelay,ally)
+				Control.CastSpell(keybindings[redemption],Pos)
+			end
+		end
+	end
+	end
 end
 
 function Soraka:Draw()
