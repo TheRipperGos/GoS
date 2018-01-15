@@ -8,7 +8,7 @@ local acos = math.acos
 local insert = table.insert
 local TEAM_JUNGLE = 300
 local TEAM_ENEMY = 300 - myHero.team
-local ScriptVersion = "v1.5"
+local ScriptVersion = "v1.7"
 -- engine --
 local function GetMode()
 	if _G.EOWLoaded then
@@ -145,7 +145,6 @@ function GetAllyHeroes()
 	end
 	return _AllyHeroes
 end
-
 
 local _EnemyHeroes
 local function GetEnemyHeroes()
@@ -667,8 +666,7 @@ if TRS.Heal.W:Value() == false then return end
 							Control.CastSpell(HK_W,hero)
 						end
 					end
-				end
-				
+				end				
 			elseif pos and endPos then
 				for k,hero in pairs(GetAllyHeroes)	do
 				local afterdmg = ((hero.health - damage)/(hero.MaxHealth))
@@ -693,28 +691,28 @@ end
 
 function Soraka:AutoR()
   	if TRS.ULT.R:Value() == false then return end
+	local h = myHero.pos
+	if (myHero.health/myHero.maxHealth <= TRS.ULT.myHealth:Value() / 100) and Ready(_R) and not myHero.dead then
+		local liste = HeroesAround(h,2000,TEAM_ENEMY)
+--		if #liste > 0 then
+			Control.CastSpell(HK_R)
+--		end
+--		return
+	end
 	for i,ally in pairs(GetAllyHeroes()) do
-		local a = ally.pos
-		local h = myHero.pos
-		if not ally.isMe and not ally.dead then
-			if TRS.ULT.Heroes[ally.networkID]:Value() and Ready(_R) then
+	local a = ally.pos
+	if not ally.isMe and not ally.dead then
+		if TRS.ULT.Heroes[ally.networkID]:Value() and Ready(_R) then
 			if(ally.health/ally.maxHealth <= TRS.ULT.heroHP[ally.networkID]:Value() / 100) then
 			local lista = HeroesAround(a,2000,TEAM_ENEMY)
-			if #lista > 0 then
-			Control.CastSpell(HK_R)	
+--			if #lista > 0 then
+				Control.CastSpell(HK_R)	
 --			return
+--			end
 			end
 		end
-		end
-		if (myHero.health/myHero.maxHealth <= TRS.ULT.myHealth:Value() / 100) and Ready(_R) and not myHero.dead then
-			local liste = HeroesAround(h,2000,TEAM_ENEMY)
-			if #liste > 0 then
-			Control.CastSpell(HK_R)
-			end
---			return
-			end
-		end
-		end
+	end
+	end
 end
   
 function Soraka:Misc()
