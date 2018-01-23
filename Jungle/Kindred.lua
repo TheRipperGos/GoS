@@ -4,7 +4,7 @@ local TEAM_JUNGLE = 300
 local TEAM_ENEMY = 300 - myHero.team
 local ScriptVersion = "ALPHA"
 
-local function GetMode()
+function GetMode()
 	if _G.EOWLoaded then
 		if EOW.CurrentMode == 1 then
 			return "Combo"
@@ -39,15 +39,15 @@ local function GetDistanceSqr(p1, p2)
 	return dx * dx + dz * dz
 end
 
-local function GetDistance(p1, p2)
+function GetDistance(p1, p2)
     return sqrt(GetDistanceSqr(p1, p2))
 end
 
-local function GetDistance2D(p1,p2)
+function GetDistance2D(p1,p2)
     return sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
 end
 
-local function Ready(spell)
+function Ready(spell)
 	return myHero:GetSpellData(spell).currentCd == 0 and myHero:GetSpellData(spell).level > 0 and myHero:GetSpellData(spell).mana <= myHero.mana and Game.CanUseSpell(spell) == 0 
 end
 
@@ -103,7 +103,6 @@ function calcMaxPos(pos)
 	return {x = origin.x + qRange * vectorx / dist ,y = origin.y + qRange * vectory / dist, z = origin.z + qRange * vectorz / dist}
 end
 
-
 class "Kindred"
 
 function Kindred:__init()
@@ -143,6 +142,9 @@ end
 
 function Kindred:Combo()
 
+	if CanCast(_W) then
+
+	end
 
 	if CanCast(_Q) then
 		-- FLASH Q
@@ -153,7 +155,8 @@ function Kindred:Combo()
 		end]]
 
 		local target = CurrentTarget()
-		if GetDistance(mousePos, GetOrigin(myHero)) > qRange then
+		if target == nil then return end
+		if GetDistance(mousePos, GetOrigin(myHero)) > Q.range then
 			mousePos = calcMaxPos(mousePos)
 		end
 
@@ -162,9 +165,6 @@ function Kindred:Combo()
 		end
 	end
 
-	if CanCast(_W) then
-
-	end
 
 	if CanCast(_E) then
 		local target = CurrentTarget(E.range)
