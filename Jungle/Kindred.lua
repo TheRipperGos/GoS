@@ -61,56 +61,32 @@ function CurrentTarget(range)
 	end
 end
 
-class "Kindred"
-
-function Kindred:__init()
-self:LoadSpells()
-self:LoadMenu()
-Callback.Add("Tick", function() self:Tick() end)
-end
-
-function Kindred:LoadSpells()
-E = { range = myHero:GetSpellData(_E).range }
-end
-
-function Kindred:LoadMenu()
-	self.Menu = MenuElement({type = MENU, id = "Kindred", name = "Kindred ALPHA"})
-end
-
-function Kindred:Tick()
-if myHero.dead == false and Game.IsChatOpen() == false  then
-if Mode == "Combo" then
-		self:Combo()
-end
-end
-end
-
-function Kindred:IsReady(spell)
+function IsReady(spell)
 	return Game.CanUseSpell(spell) == 0
 end
 
-function Kindred:CheckMana(spellSlot)
+function CheckMana(spellSlot)
 	return myHero:GetSpellData(spellSlot).mana < myHero.mana
 end
 
-function Kindred:CanCast(spellSlot)
-	return self:IsReady(spellSlot) and self:CheckMana(spellSlot)
+function CanCast(spellSlot)
+	return IsReady(spellSlot) and CheckMana(spellSlot)
 end
 
-function Kindred:GetEnemyHeroes()
-	self.EnemyHeroes = {}
+function GetEnemyHeroes()
+	EnemyHeroes = {}
 	for i = 1, Game.HeroCount() do
 		local Hero = Game.Hero(i)
 		if Hero.isEnemy then
-			table.insert(self.EnemyHeroes, Hero)
+			table.insert(EnemyHeroes, Hero)
 		end
 	end
 	return self.EnemyHeroes
 end
 
-function Kindred:EnemyInRange(range)
+function EnemyInRange(range)
 	local count = 0
-	for i, target in ipairs(self:GetEnemyHeroes()) do
+	for i, target in ipairs(GetEnemyHeroes()) do
 		if target.pos:DistanceTo(myHero.pos) < range then 
 			count = count + 1
 		end
@@ -118,13 +94,66 @@ function Kindred:EnemyInRange(range)
 	return count
 end
 
+function calcMaxPos(pos)
+	local origin = myHero.pos
+	local vectorx = pos.x-origin.x
+	local vectory = pos.y-origin.y
+	local vectorz = pos.z-origin.z
+	local dist= math.sqrt(vectorx^2+vectory^2+vectorz^2)
+	return {x = origin.x + qRange * vectorx / dist ,y = origin.y + qRange * vectory / dist, z = origin.z + qRange * vectorz / dist}
+end
+
+
+class "Kindred"
+
+function Kindred:__init()
+	self:LoadSpells()
+	self:LoadMenu()
+	Callback.Add("Tick", function() self:Tick() end)
+end
+
+function Kindred:LoadSpells()
+	E = { range = myHero:GetSpellData(_E).range }
+	R = { range = myHero:GetSpellData(_R).range }
+end
+
+function Kindred:LoadMenu()
+	self.Menu = MenuElement({type = MENU, id = "Kindred", name = "Kindred ALPHA"})
+end
+
+function Kindred:Tick()
+	if myHero.dead == false and Game.IsChatOpen() == false  then
+		if Mode == "Combo" then
+				self:Combo()
+		end
+		self:AutoR()
+	end
+end
+
+function Kindred:AutoR()
+	if CanCast(_R) then
+		if myHero.health/myHero.maxHealth < .70 then
+			Control.CastSpell(HK_R)
+	end
+end
+
 function Kindred:Combo()
-	local target = CurrentTarget(E.range)
-    if target == nil then return end
-	if target and self:CanCast(_E) then
-	    if self:EnemyInRange(E.range) then
-			if myHero.pos:DistanceTo(target.pos) < E.range then
-			Control.CastSpell(HK_E,target.pos)
+	if CanCast(_Q) then
+
+	end
+
+	if CanCast(_W) then
+
+	end
+
+	if CanCast(_E) then
+		local target = CurrentTarget(E.range)
+	    if target == nil then return end
+		if target then
+		    if EnemyInRange(E.range) then
+				if myHero.pos:DistanceTo(target.pos) < E.range then
+				Control.CastSpell(HK_E,target.pos)
+				end
 			end
 		end
 	end
