@@ -198,3 +198,9 @@ function Kindred:Flee()
 end
 
 Callback.Add("Load",function() _G[myHero.charName]() end)
+
+-- https://github.com/HoesLeaguesharp/LeagueSharp/blob/master/Slutty%20Kindred/Slutty%20Kindred/Kindred.cs
+-- https://github.com/Hanndel/GoS/blob/master/Kindred.lua
+-- https://github.com/iLoveSona/GOS/blob/master/simple%20kindred.lua
+
+-- pombo: https://github.com/koka0012/EloBuddy/blob/master/Kindred/Kindred/KindredMenu.cs
