@@ -113,6 +113,7 @@ function Kindred:__init()
 end
 
 function Kindred:LoadSpells()
+	Q = { range = myHero:GetSpellData(_Q).range }
 	E = { range = myHero:GetSpellData(_E).range }
 	R = { range = myHero:GetSpellData(_R).range }
 end
@@ -124,7 +125,10 @@ end
 function Kindred:Tick()
 	if myHero.dead == false and Game.IsChatOpen() == false  then
 		if Mode == "Combo" then
-				self:Combo()
+			self:Combo()
+		end
+		if Mode == "Flee" then
+			self:Flee()
 		end
 		self:AutoR()
 	end
@@ -149,6 +153,14 @@ function Kindred:Combo()
 				end
 		end]]
 
+		local target = CurrentTarget()
+		if GetDistance(mousePos, GetOrigin(myHero)) > qRange then
+			mousePos = calcMaxPos(mousePos)
+		end
+
+		if (GetDistance(mousePos, target.pos) <= 500) --[[and ValidTarget(target)]] then
+			Control.CastSpell(HK_Q, mousePos)
+		end
 	end
 
 	if CanCast(_W) then
@@ -180,7 +192,7 @@ end
 
 function Kindred:Flee()
 	if CanCast(_Q) then
-		if WallBetween(myHero.pos), mousePos,  340) then
+		if WallBetween(myHero.pos, mousePos,  340) then
 			Control.CastSpell(HK_Q, mousePos)
 		end
 	end
