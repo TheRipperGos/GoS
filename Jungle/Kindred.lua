@@ -134,6 +134,7 @@ function Kindred:AutoR()
 	if CanCast(_R) then
 		if myHero.health/myHero.maxHealth < .70 then
 			Control.CastSpell(HK_R)
+		end
 	end
 end
 
