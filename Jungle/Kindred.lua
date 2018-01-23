@@ -132,14 +132,22 @@ end
 
 function Kindred:AutoR()
 	if CanCast(_R) then
-		if myHero.health/myHero.maxHealth < .70 then
+		if myHero.health/myHero.maxHealth < .70 and EnemyInRange(1000) then
 			Control.CastSpell(HK_R)
 		end
 	end
 end
 
 function Kindred:Combo()
+
+
 	if CanCast(_Q) then
+		-- FLASH Q
+		--[[if MENU FLASH then
+				if PODE USAR FLASH then
+					
+				end
+		end]]
 
 	end
 
@@ -156,6 +164,24 @@ function Kindred:Combo()
 				Control.CastSpell(HK_E,target.pos)
 				end
 			end
+		end
+	end
+end
+
+function WallBetween(p1, p2, distance) --p1 and p2 are Vectors3d
+
+	local Check = p1 + (Vector(p2) - p1):normalized()*distance/2
+	local Checkdistance = p1 +(Vector(p2) - p1):normalized()*distance
+	
+	if MapPosition:inWall(Check) and not MapPosition:inWall(Checkdistance) then
+		return true
+	end
+end
+
+function Kindred:Flee()
+	if CanCast(_Q) then
+		if WallBetween(myHero.pos), mousePos,  340) then
+			Control.CastSpell(HK_Q, mousePos)
 		end
 	end
 end
