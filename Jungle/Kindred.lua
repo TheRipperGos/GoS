@@ -126,8 +126,7 @@ function Kindred:Tick()
 	if myHero.dead == false and Game.IsChatOpen() == false  then
 		if Mode == "Combo" then
 			self:Combo()
-		end
-		if Mode == "Flee" then
+		elseif Mode == "Flee" then
 			self:Flee()
 		end
 		self:AutoR()
@@ -173,7 +172,7 @@ function Kindred:Combo()
 		if target then
 		    if EnemyInRange(E.range) then
 				if myHero.pos:DistanceTo(target.pos) < E.range then
-				Control.CastSpell(HK_E,target.pos)
+					Control.CastSpell(HK_E,target.pos)
 				end
 			end
 		end
