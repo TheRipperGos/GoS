@@ -66,7 +66,7 @@ local function CurrentTarget(range)
 end
 
 local function IsReady(spell)
-	return myHero:GetSpellData(spell).currentCd == 0 and  myHero:GetSpellData(spell).level > 0
+	return myHero:GetSpellData(spell).currentCd == 0 and  myHero:GetSpellData(spell).level > 0 and Game.CanUseSpell(spell) == 0 
 end
 
 local function CheckMana(spellSlot)
@@ -375,7 +375,8 @@ end
 
 function Kindred:Tick()
 	if myHero.dead == false and Game.IsChatOpen() == false  then
-	local Mode = GetMode()
+		local Mode = GetMode()
+		self:AutoR()
 		if Mode == "Combo" then
 			self:Combo()
 		elseif Mode == "Flee" then
@@ -383,17 +384,16 @@ function Kindred:Tick()
 		elseif Mode == "Clear" then
 			self:LaneClear()
 		end
-		self:AutoR()
 		self:AutoSteal()
 	end
 end
 
 function Kindred:AutoR()
 	if CanCast(_R) and Kindred.ult.R:Value() then
-		if Kindred.ult.pR:Value() and myHero.health/myHero.maxHealth <= 0.15 then
+		if Kindred.ult.pR:Value() and myHero.health/myHero.maxHealth <= 0.18 then
 			Control.CastSpell(HK_R)
 		end
-		if (myHero.health/myHero.maxHealth <= Kindred.ult.MyHP:Value()/100) and EnemyInRange(1000) > Kindred.ult.Enemies:Value() then
+		if (myHero.health/myHero.maxHealth <= Kindred.ult.MyHP:Value()/100) and EnemyInRange(1000) >= Kindred.ult.Enemies:Value() then
 			Control.CastSpell(HK_R)
 		end
 		if Kindred.ult.allyR:Value() then
@@ -569,22 +569,19 @@ function Kindred:LaneClear()
     				if CanCast(_E) and ValidTarget(mob, 500) and Kindred.LC.E:Value() and  (mob.health + mob.shieldAD) >= CalcPhysicalDamage(myHero, mob, self:EDMG(mob)) then 
     					Control.CastSpell(HK_E,mob.pos)
 	    			end
-			end
-  	 	end
-		if mob.team == TEAM_ENEMY then
+			end end
+		elseif mob.team == TEAM_ENEMY then
 			if --[[KindredM.QOptions.QL:Value() == false and]] CanCast(_Q) and Kindred.LC.Q:Value() and ValidTarget(mob, 1000) then 
 				Control.CastSpell(HK_Q, mousePos)
 			end
 			if CanCast(_W) and ValidTarget(mob, 800) and Kindred.LC.W:Value() then 
-				Control.CastSpell(_W, myHero.pos)
+				Control.CastSpell(HK_W, myHero.pos)
 			end
-			if CanCast(_E) and ValidTarget(mob, 500) and Kindred.LC.E:Value() then 
+			--[[if CanCast(_E) and ValidTarget(mob, 500) and Kindred.LC.E:Value() then 
 				Control.CastSpell(HK_E,mob.pos)
-			end 
+			end ]]
 		end
-	end
-end
-end
+	end end
 
 function Kindred:PassiveStacks()
 	local passive = GetBuffData(myHero, "kindredmarkofthekindredstackcounter").stacks
