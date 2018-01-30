@@ -1,7 +1,5 @@
 if myHero.charName ~= "Kindred" then return end
 
-require 'TPred'
-
 local sqrt = math.sqrt 
 local abs = math.abs 
 local deg = math.deg
