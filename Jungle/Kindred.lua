@@ -1,5 +1,7 @@
 if myHero.charName ~= "Kindred" then return end
 
+require 'TPred'
+
 local sqrt = math.sqrt 
 local abs = math.abs 
 local deg = math.deg
@@ -85,7 +87,7 @@ local function GetEnemyHeroes()
 	for i = 1, Game.HeroCount() do
 		local Hero = Game.Hero(i)
 		if Hero and Hero.isEnemy then
-			table.insert(EnemyHeroes, Hero)
+			insert(EnemyHeroes, Hero)
 		end
 	end
 	return EnemyHeroes
@@ -96,7 +98,7 @@ local function GetAllyHeroes()
   	for i = 1, Game.HeroCount() do
     	local unit = Game.Hero(i)
     	if unit and unit.isAlly then
-	  		table.insert(AllyHeroes, unit)
+	  		insert(AllyHeroes, unit)
   		end
   	end
   	return AllyHeroes
@@ -107,7 +109,7 @@ local function GetMinions()
 	for i = 1,Game.MinionCount() do
     	local minion = Game.Minion(i)
     	if minion and minion.team ~= myHero.team then
-    		table.insert(mobs, minion)
+    		insert(mobs, minion)
     	end
     end
     return mobs
@@ -409,8 +411,8 @@ function Kindred:AutoR()
 end
 
 function Kindred:Combo()
-	if CanCast(_W) and Kindred.Combo.W:Value() then
-		local target = CurrentTarget(1300)
+	if CanCast(_W) and Kindred.Combo.W:Value() and myHero.attackData.state==STATE_WINDUP then
+		local target = CurrentTarget(1250)
 		if target == nil then return end
 		local h = myHero.pos
 		local bR = target.boundingRadius
@@ -431,29 +433,34 @@ function Kindred:Combo()
     	end
 	end
 
-	if CanCast(_Q) and Kindred.Combo.Q:Value() then
+	if CanCast(_Q) and Kindred.Combo.Q:Value() and myHero.attackData.state == STATE_WINDDOWN then
 		-- FLASH Q
 		--[[if MENU FLASH then
 				if PODE USAR FLASH then
 					
 				end
 		end]]
-
 		local Qtarget = CurrentTarget(Kindred.Combo.rQ:Value() + 50)
 		if Qtarget == nil then return end
 		if (GetDistance(myHero.pos, Qtarget.pos) <= Kindred.Combo.rQ:Value()) --[[and ValidTarget(target)]] then
-			Control.CastSpell(HK_Q, mousePos)
+			if (GetDistance(myHero.pos, Qtarget.pos) <= myHero.range then
+				if myHero.attackData.state == STATE_WINDDOWN then
+					Control.CastSpell(HK_Q, mousePos)
+				end
+			else
+				Control.CastSpell(HK_Q, mousePos)
+			end
 		end
 	end
 
 
-	if CanCast(_E) and Kindred.Combo.E:Value() then
+	if CanCast(_E) and Kindred.Combo.E:Value() and myHero.attackData.state==STATE_WINDUP then
 		local Etarget = CurrentTarget(E.range)
 	    if Etarget == nil then return end
 		if Etarget then
 		    if EnemyInRange(E.range) then
-				if myHero.pos:DistanceTo(Etarget.pos) < E.range then
-					Control.CastSpell(HK_E,Etarget.pos)
+				if myHero.pos:DistanceTo(Etarget.pos) <= E.range then
+					Control.CastSpell(HK_E,Etarget)
 					if HasBuff(Etarget, "kindredecharge") then
 						self:FocusETarget(Etarget)
 					end
@@ -615,3 +622,13 @@ end
 
 
 Callback.Add("Load",function() _G[myHero.charName]() end)
+
+
+
+-- https://github.com/HoesLeaguesharp/LeagueSharp/blob/master/Slutty%20Kindred/Slutty%20Kindred/Kindred.cs
+-- https://github.com/Hanndel/GoS/blob/master/Kindred.lua
+-- https://github.com/iLoveSona/GOS/blob/master/simple%20kindred.lua
+
+-- pombo: https://github.com/koka0012/EloBuddy/blob/master/Kindred/Kindred/KindredMenu.cs
+
+-- calculos de jg parecem bons aqui: https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-AIO.lua
