@@ -1,3 +1,5 @@
+if myHero.charName ~= "Soraka" then return end
+
 require 'DamageLib'
 require 'Eternal Prediction'
 require "MapPosition"
@@ -8,7 +10,7 @@ local acos = math.acos
 local insert = table.insert
 local TEAM_JUNGLE = 300
 local TEAM_ENEMY = 300 - myHero.team
-local ScriptVersion = "v1.7"
+local ScriptVersion = "v2.1"
 -- engine --
 local function GetMode()
 	if _G.EOWLoaded then
@@ -308,7 +310,7 @@ end
 		end	
 	end	
 
-local function ExcludeFurthest(average,lst,sTar)
+	local function ExcludeFurthest(average,lst,sTar)
 		local removeID = 1 
 		for i = 2, #lst do 
 			if GetDistanceSqr(average, lst[i].pos) > GetDistanceSqr(average, lst[removeID].pos) then 
@@ -377,6 +379,24 @@ function GetInventorySlotItem(itemID)
 		end
 		return nil
 end
+
+function SetMovement(bool)
+	if _G.EOWLoaded then
+		EOW:SetMovements(bool)
+		EOW:SetAttacks(bool)
+	elseif _G.SDK then
+		_G.SDK.Orbwalker:SetMovement(bool)
+		_G.SDK.Orbwalker:SetAttack(bool)
+	else
+		GOS.BlockMovement = not bool
+		GOS.BlockAttack = not bool
+	end
+end
+
+local function OnScreen(unit)
+	return unit.pos:To2D().onScreen;
+end
+
 -- engine --
 -- Soraka -- 
 class "Soraka"
@@ -389,14 +409,16 @@ function Soraka:__init()
   	self:LoadMenu()
   	Callback.Add("Tick", function() self:Tick() end)
   	Callback.Add("Draw", function() self:Draw() end)
+  	print("===Soraka The Healer "..SorakaVersion.." Loaded===")
 	if myHero.team == 100 then self.base = Vector(396,182.132507324219,462); else self.base = Vector(14340, 171.977722167969, 14390); end
 end
 
 function Soraka:LoadSpells()
-  	Q = { range = 800, range2 = 640000, mrange = 1035, mrange2 = 1071225, delay = myHero:GetSpellData(_Q).delay, speed = myHero:GetSpellData(_Q).speed, speed2 = myHero:GetSpellData(_Q).speed * myHero:GetSpellData(_Q).speed ,width = 235, width2 = 55225, icon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/cd/Starcall.png" }
-	W = { range = myHero:GetSpellData(_W).range, range2 = myHero:GetSpellData(_W).range * myHero:GetSpellData(_W).range, delay = myHero:GetSpellData(_W).delay, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width, width2 = myHero:GetSpellData(_W).width * myHero:GetSpellData(_W).width, icon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/6/6f/Astral_Infusion.png" }
-	E = { range = 925, range2 = 855625, mrange = 1160, mrange2 = 1345600, delay = myHero:GetSpellData(_E).delay, speed = myHero:GetSpellData(_E).speed, speed2 = myHero:GetSpellData(_E).speed * myHero:GetSpellData(_E).speed, width = myHero:GetSpellData(_E).width, width2 = myHero:GetSpellData(_E).width * myHero:GetSpellData(_E).width, icon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/e/e7/Equinox.png" }
-	R = { range = myHero:GetSpellData(_R).range, range2 = myHero:GetSpellData(_R).range * myHero:GetSpellData(_R).range, delay = myHero:GetSpellData(_R).delay, speed = myHero:GetSpellData(_R).speed, width = myHero:GetSpellData(_R).width, width2 = myHero:GetSpellData(_R).width * myHero:GetSpellData(_R).width, icon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f3/Wish.png" }
+  	Q = { range = 800, range2 = 640000, mrange = 1035, mrange2 = 1071225, delay =  0.1, speed = myHero:GetSpellData(_Q).speed, speed2 = myHero:GetSpellData(_Q).speed * myHero:GetSpellData(_Q).speed ,width = 235, width2 = 55225, icon = "https://vignette4.wikia.nocookie.net/leagueoflegends/images/c/cd/Starcall.png" }
+	W = { range = myHero:GetSpellData(_W).range, range2 = myHero:GetSpellData(_W).range * myHero:GetSpellData(_W).range, speed = myHero:GetSpellData(_W).speed, width = myHero:GetSpellData(_W).width, width2 = myHero:GetSpellData(_W).width * myHero:GetSpellData(_W).width, icon = "https://vignette2.wikia.nocookie.net/leagueoflegends/images/6/6f/Astral_Infusion.png" }
+	E = { range = 925, range2 = 855625, mrange = 1175, mrange2 = 1380625, delay = 0.1, width = 250, width2 = 62500, speed = myHero:GetSpellData(_E).speed, speed2 = myHero:GetSpellData(_E).speed * myHero:GetSpellData(_E).speed, icon = "https://vignette3.wikia.nocookie.net/leagueoflegends/images/e/e7/Equinox.png" }
+	R = { range = myHero:GetSpellData(_R).range, range2 = myHero:GetSpellData(_R).range * myHero:GetSpellData(_R).range, speed = myHero:GetSpellData(_R).speed, icon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f3/Wish.png" }
+	Redemp = { icon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/94/Redemption_item.png" }
 end
 
 function Soraka:LoadMissile()
@@ -422,29 +444,37 @@ function Soraka:LoadMenu()
 	--Q
 	TRS:MenuElement({type = MENU, id = "Q", name = "[Q] settings", leftIcon = Q.icon})
 	TRS.Q:MenuElement({id = "Qcombo", name = "Use in Combo", value = true})
+	TRS.Q:MenuElement({type = SPACE})
 	TRS.Q:MenuElement({id = "Qclear", name = "Use in Clear", value = true})
 	TRS.Q:MenuElement({id = "Qminions", name = "Minimum minions to hit", value = 3, min = 1, max = 7})
 	TRS.Q:MenuElement({id = "QManaC", name = "Min mana to Clear (%)", value = 40, min = 0, max = 100})
+	TRS.Q:MenuElement({type = SPACE})
 	TRS.Q:MenuElement({id = "Qharass", name = "Use in Harass", value = true})
 	TRS.Q:MenuElement({id = "QManaH", name = "Min mana to Harass (%)", value = 40, min = 0, max = 100})
+	TRS.Q:MenuElement({type = SPACE})
 	TRS.Q:MenuElement({id = "Qflee", name = "Use in Flee", value = true})
-	TRS.Q:MenuElement({id = "Qks", name = "Use to KS", value = true})
+	TRS.Q:MenuElement({type = SPACE})
+	TRS.Q:MenuElement({id = "Qks", name = "KillSecure", value = true})
 	--E
 	TRS:MenuElement({type = MENU, id = "E", name = "[E] settings", leftIcon = E.icon})
 	TRS.E:MenuElement({id = "Ecombo", name = "Use in Combo", value = true})
 	TRS.E:MenuElement({id = "MinE", name = "Minimum enemies to hit", value = 1, min = 1, max = 5})
+	TRS.E:MenuElement({type = SPACE})
 	TRS.E:MenuElement({id = "Eharass", name = "Use in Harass", value = true})
 	TRS.E:MenuElement({id = "EManaH", name = "Min mana to Harass (%)", value = 40, min = 0, max = 100})
+	TRS.E:MenuElement({type = SPACE})
 	TRS.E:MenuElement({id = "Eflee", name = "Use in Flee", value = true})
-	TRS.E:MenuElement({id = "Eks", name = "Use to KS", value = true})
+	TRS.E:MenuElement({type = SPACE})
+	TRS.E:MenuElement({id = "Eks", name = "KillSecure", value = true})
+	TRS.E:MenuElement({type = SPACE})
 	TRS.E:MenuElement({id = "Ecc", name = "Auto [E] if enemy has CC", value = true})
   	TRS.E:MenuElement({id = "Ecancel", name = "Auto [E] to Interrupt", value = true})
 	--Heal
   	TRS:MenuElement({type = MENU, id = "Heal", name = "Heal", leftIcon = W.icon})
   	TRS.Heal:MenuElement({id = "W", name = "Use [W]", value = true})
   	TRS.Heal:MenuElement({id = "myHealth", name = "Minimum Soraka Health (%)", value = 45, min = 5, max = 100})
+  	TRS.Heal:MenuElement({id = "Mana", name = "Minimum Mana (%)", value = 20, min = 0, max = 100})
 	TRS.Heal:MenuElement({id = "Wmode", name = "Priorize", drop = {"Most AD", "Most AP", "Hybrid"}})
-	TRS.Heal:MenuElement({id = "Mana", name = "Minimum Mana (%)", value = 20, min = 0, max = 100})
 	TRS.Heal:MenuElement({type = MENU, id = "Heroes", name = "Heroes settings"})
 	for i,ally in pairs(GetAllyHeroes()) do
 	if ally.team == myHero.team and not ally.isMe then
@@ -477,17 +507,39 @@ function Soraka:LoadMenu()
 	TRS:MenuElement({type = MENU, id = "Items", name = "Items"})
 	TRS.Items:MenuElement({type = MENU, id = "Red", name = "Redemption"})
 		TRS.Items.Red:MenuElement({id = "ONRed", name = "Use Redemption", value = true})
-		TRS.Items.Red:MenuElement({id = "myHealth", name = "Minimum Soraka Health (%)", value = 20, min = 0, max = 100})
+		TRS.Items.Red:MenuElement({id = "RedMe", name = "Use on my hero", value = true})
+		TRS.Items.Red:MenuElement({id = "myHealth", name = "Minimum Soraka Health (%)", value = 35, min = 0, max = 100})
+		TRS.Items.Red:MenuElement({type = SPACE})
+		TRS.Items.Red:MenuElement({id = "RedAlly", name = "Use on allies", value = true})
+		TRS.Items.Red:MenuElement({id = "allyHealth", name = "Minimum Ally Health (%)", value = 35, min = 0, max = 100})
+		TRS.Items.Red:MenuElement({type = SPACE})
+		TRS.Items.Red:MenuElement({id = "RedEnemy", name = "Use on enemies", value = true})
+		TRS.Items.Red:MenuElement({id = "xEne", name = "If hit minimum X enemies", value = 2, min = 1, max = 5})
+		TRS.Items.Red:MenuElement({id = "enemyHealth", name = "Enemy Health (%) below", value = 40, min = 0, max = 100})
+		TRS.Items.Red:MenuElement({type = SPACE})
+		TRS.Items.Red:MenuElement({id = "RedKS", name = "KillSecure", value = true, tooltip = "needs improvement"})
+
+
 	--Drawings
   	TRS:MenuElement({type = MENU, id = "Drawings", name = "Drawings Settings"})
   	TRS.Drawings:MenuElement({id = "Q", name = "Draw [Q] range", value = true, leftIcon = Q.icon})
+  	TRS.Drawings:MenuElement({id = "qColor", name = "Q Color", color = Draw.Color(255, 0, 0, 255)})
+  	TRS.Drawings:MenuElement({id = "W", name = "Draw [W] range", value = true, leftIcon = W.icon})
+  	TRS.Drawings:MenuElement({id = "wColor", name = "W Color", color = Draw.Color(255, 107, 225, 111)})
   	TRS.Drawings:MenuElement({id = "E", name = "Draw [E] range", value = true, leftIcon = E.icon})
-  	TRS.Drawings:MenuElement({id = "Width", name = "Width", value = 2, min = 1, max = 5, step = 1})
-	TRS.Drawings:MenuElement({id = "Color", name = "Color", color = Draw.Color(255, 0, 0, 255)})
+  	TRS.Drawings:MenuElement({id = "eColor", name = "E Color", color = Draw.Color(255, 0, 0, 255)})
+  	TRS.Drawings:MenuElement({id = "Red", name = "Draw [Redemption] range", value = true, leftIcon = Redemp.icon, tooltip = "On minimap" })
+	TRS.Drawings:MenuElement({id = "rColor", name = "Color", color = Draw.Color(255, 107, 225, 111)})
+
 end
 
 function Soraka:Tick()
-	if myHero.dead == false and Game.IsChatOpen() == false then
+	self:Killsteal()
+	if myHero.dead == false and Game.IsChatOpen() == false and not HasBuff(myHero,"recall") then
+	self:AutoR()
+	self:Heal()
+	self:Killsteal()    
+  	self:Misc()
 	local Mode = GetMode()
 	if Mode == "Combo" then
 		self:Combo()
@@ -498,50 +550,69 @@ function Soraka:Tick()
     elseif Mode == "Flee" then
     	self:Flee()
     end
-	self:AutoR()
-	self:Killsteal()
-    self:Heal()
-  	self:Misc()
 	self:Items()
-	end
+end
 end
 
 function Soraka:Combo()
-	local target = GetTarget(1150)
+	local target = GetTarget(1035)
 	if target == nil then
 	return 
-	end 
-	if TRS.E.Ecombo:Value() and Ready(_E) and myHero.pos:DistanceTo(target) <= 800 then
+	end
+	if myHero.attackData.state==STATE_WINDUP then return end 
+	if TRS.E.Ecombo:Value() and Ready(_E) and GetDistance(myHero.pos, target.pos) <= 800 then
 		local h = myHero.pos
 		local bR = target.boundingRadius
 		local F = IsFacing(target)
-		local list = HeroesAround(h,E.range2,TEAM_ENEMY)
+		local list = HeroesAround(h,E.mrange2,TEAM_ENEMY)
 		local Pos, Count = GetBestCircularCastPos(E.width2,list,E.speed,E.delay,target)
-		local Dist = GetDistanceSqr(Pos, h)
---		print(target.type)
-    	if F and Dist - bR * bR < E.range2 then 
+		local Dist = GetDistanceSqr(Pos, h) - bR * bR
+		if Pos and Count >= TRS.E.MinE:Value() then
+    	if F and Dist < E.mrange2 then
+    		if Dist > E.range2 then 
+    			Pos = h + (Pos - h):Normalized()*E.range
+    		end
+    		SetMovement(false)
     		Control.CastSpell(HK_E, Pos)
-    	elseif Dist - bR * bR < 0.95*E.range2 then 
+    		DelayAction(function() SetMovement(true) end, 0.28)
+    	elseif Dist < 0.95*E.mrange2 then 
+    		if Dist > E.range2 then 
+    			Pos = h + (Pos - h):Normalized()*E.range
+    		end 
+    		SetMovement(false)
     		Control.CastSpell(HK_E, Pos)
+    		DelayAction(function() SetMovement(true) end, 0.28)
     	end
-	end
+    	end
+    end
 	if TRS.Q.Qcombo:Value() and Ready(_Q) then
 		local h = myHero.pos
 		local bR = target.boundingRadius
 		local F = IsFacing(target)
-		local list = HeroesAround(h,Q.range2,TEAM_ENEMY)
+		local list = HeroesAround(h,Q.mrange2,TEAM_ENEMY)
 		local Pos = GetBestCircularCastPos(Q.width2,list,Q.speed,Q.delay,target)
-		local Dist = GetDistanceSqr(Pos, h)
-    	if F and Dist - bR * bR < Q.range2 then 
+		local Dist = GetDistanceSqr(Pos, h) - bR * bR 
+    	if F and Dist < Q.mrange2 then
+    		if Dist > Q.range2 then 
+    			Pos = h + (Pos - h):Normalized()*Q.range
+    		end 
+    		SetMovement(false)
     		Control.CastSpell(HK_Q, Pos)
-    	elseif Dist - bR * bR < 0.95*Q.range2 then 
+    		DelayAction(function() SetMovement(true) end, 0.28)
+    	elseif Dist < 0.95*Q.mrange2 then 
+    		if Dist > Q.range2 then 
+    			Pos = h + (Pos - h):Normalized()*Q.range
+    		end 
+    		SetMovement(false)
     		Control.CastSpell(HK_Q, Pos)
+    		DelayAction(function() SetMovement(true) end, 0.28)
     	end
 	end
 end
 
 function Soraka:Clear()
 	if TRS.Q.Qclear:Value() == false then return end
+	if myHero.attackData.state==STATE_WINDUP then return end 
 	local h = myHero.pos
 	local t = TEAM_ENEMY or 300
 	local sTar = nil
@@ -558,11 +629,13 @@ function Soraka:Clear()
 				Control.CastSpell(HK_Q, Pos)
 			end
 		end
+
 end
 
 function Soraka:Harass()
-	local target = GetTarget(1150)
+	local target = GetTarget(1135)
 	if target == nil then return end
+	if myHero.attackData.state==STATE_WINDUP then return end 
 	if TRS.Q.Qharass:Value() and Ready(_Q) and (myHero.mana/myHero.maxMana > TRS.Q.QManaH:Value() / 100) then
 		local h = myHero.pos
 		local bR = target.boundingRadius
@@ -693,7 +766,7 @@ function Soraka:AutoR()
   	if TRS.ULT.R:Value() == false then return end
 	local h = myHero.pos
 	if (myHero.health/myHero.maxHealth <= TRS.ULT.myHealth:Value() / 100) and Ready(_R) and not myHero.dead then
-		local liste = HeroesAround(h,2000,TEAM_ENEMY)
+--		local liste = HeroesAround(h,2000,TEAM_ENEMY)
 --		if #liste > 0 then
 			Control.CastSpell(HK_R)
 --		end
@@ -704,7 +777,7 @@ function Soraka:AutoR()
 	if not ally.isMe and not ally.dead then
 		if TRS.ULT.Heroes[ally.networkID]:Value() and Ready(_R) then
 			if(ally.health/ally.maxHealth <= TRS.ULT.heroHP[ally.networkID]:Value() / 100) then
-			local lista = HeroesAround(a,2000,TEAM_ENEMY)
+--			local lista = HeroesAround(a,2000,TEAM_ENEMY)
 --			if #lista > 0 then
 				Control.CastSpell(HK_R)	
 --			return
@@ -719,27 +792,45 @@ function Soraka:Misc()
 	if Ready(_E) then
 	for i = 1, Game.HeroCount() do
 	local target = Game.Hero(i)
-		if target and target.isEnemy and myHero.pos:DistanceTo(target.pos) < 1150 then
+		if target and target.isEnemy and myHero.pos:DistanceTo(target.pos) < 1135 then
 		local h = myHero.pos
 		local bR = target.boundingRadius
-		local D = GetDistanceSqr(target.pos, myHero.pos)
 		local F = IsFacing(target)
-		local list = HeroesAround(myHero.pos,E.range2,TEAM_ENEMY)
+		local list = HeroesAround(h,E.mrange2,TEAM_ENEMY)
 		local Pos = GetBestCircularCastPos(E.width2,list,E.speed,E.delay,target)
 		local Dist = GetDistanceSqr(Pos, h)
 			if target.isChanneling--[[IsChannelling(hero)]] and TRS.E.Ecancel:Value() then
-				if F and Dist - bR * bR < E.range2 then 
-					Control.CastSpell(HK_E, Pos)
-				elseif Dist - bR * bR < 0.95*E.range2 then 
-					Control.CastSpell(HK_E, Pos)
-				end
-			end
-			if HasBuff(target,"recall" or "zhonyasringshield" or "willrevive",5 or 11 or 24 or 29 or 31 --[[cc]]) and TRS.E.Ecc:Value() then
-				if F and Dist - bR * bR < E.range2 then 
-					Control.CastSpell(HK_E, Pos)
-				elseif Dist - bR * bR < 0.95*E.range2 then 
-					Control.CastSpell(HK_E, Pos)
-				end
+    	if F and Dist < E.mrange2 then
+    		if Dist > E.range2 then 
+    			Pos = h + (Pos - h):Normalized()*E.range
+    		end
+    		SetMovement(false)
+    		Control.CastSpell(HK_E, Pos)
+    		DelayAction(function() SetMovement(true) end, 0.28)
+    	elseif Dist < 0.95*E.mrange2 then 
+    		if Dist > E.range2 then 
+    			Pos = h + (Pos - h):Normalized()*E.range
+    		end 
+    		SetMovement(false)
+    		Control.CastSpell(HK_E, Pos)
+    		DelayAction(function() SetMovement(true) end, 0.28)
+    	end
+			elseif IsImmobileTarget(target) and TRS.E.Ecc:Value() then
+    	if F and Dist < E.mrange2 then
+    		if Dist > E.range2 then 
+    			Pos = h + (Pos - h):Normalized()*E.range
+    		end
+    		SetMovement(false)
+    		Control.CastSpell(HK_E, Pos)
+    		DelayAction(function() SetMovement(true) end, 0.28)
+    	elseif Dist < 0.95*E.mrange2 then 
+    		if Dist > E.range2 then 
+    			Pos = h + (Pos - h):Normalized()*E.range
+    		end 
+    		SetMovement(false)
+    		Control.CastSpell(HK_E, Pos)
+    		DelayAction(function() SetMovement(true) end, 0.28)
+    	end
 			end
 		end
 	end
@@ -748,91 +839,160 @@ end
 
 function Soraka:Killsteal()
 	local h = myHero.pos
-  	if TRS.E.Eks:Value() and Ready(_E) then
-		local target = GetTarget(1150)
-		if not target then return end
-    	local Edamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_E).level + 0.4 * myHero.ap))
-		if Edamage > (target.health + target.shieldAD + target.hpRegen*1.5) then
-			local bR = target.boundingRadius
-			local D = GetDistanceSqr(target.pos, myHero.pos)
-			local F = IsFacing(target)
-			local list = HeroesAround(myHero.pos,E.range2,TEAM_ENEMY)
-			local Pos = GetBestCircularCastPos(E.width2,list,E.speed,E.delay,target)
-			local Dist = GetDistanceSqr(Pos, h)
-			if F and Dist - bR * bR < E.range2 then 
+	for i = 1, Game.HeroCount() do
+	local target = Game.Hero(i)
+	if target and target.isEnemy and not target.dead then
+		if TRS.E.Eks:Value() and Ready(_E) and myHero.dead == false and Game.IsChatOpen() == false then
+			local Edamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_E).level + 0.4 * myHero.ap))
+			if Edamage > (target.health + target.shieldAD + target.hpRegen*1.5) then
+				local bR = target.boundingRadius
+				local F = IsFacing(target)
+				local list = HeroesAround(myHero.pos,E.range2,TEAM_ENEMY)
+				local Pos = GetBestCircularCastPos(E.width2,list,E.speed,E.delay,target)
+				local Dist = GetDistanceSqr(Pos, h)
+			if F and Dist < E.mrange2 then
+				if Dist > E.range2 then 
+					Pos = h + (Pos - h):Normalized()*E.range
+				end
+				SetMovement(false)
 				Control.CastSpell(HK_E, Pos)
-			elseif Dist - bR * bR < 0.95*E.range2 then 
+				DelayAction(function() SetMovement(true) end, 0.28)
+			elseif Dist < 0.95*E.mrange2 then 
+				if Dist > E.range2 then 
+					Pos = h + (Pos - h):Normalized()*E.range
+				end 
+				SetMovement(false)
 				Control.CastSpell(HK_E, Pos)
+				DelayAction(function() SetMovement(true) end, 0.28)
 			end
-		return end
+			end
+		end
+		if TRS.Q.Qks:Value() and Ready(_Q) and myHero.dead == false and Game.IsChatOpen() == false then
+			local Qdamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap))
+			if 	Qdamage > (target.health + target.shieldAD + target.hpRegen*1.5) then
+				local target = GetTarget(1035)		
+				local bR = target.boundingRadius
+				local F = IsFacing(target)		
+				local list = HeroesAround(myHero.pos,Q.range2,TEAM_ENEMY)
+				local Pos = GetBestCircularCastPos(Q.width2,list,Q.speed,Q.delay,target)
+				local Dist = GetDistanceSqr(Pos, h)
+				if F and Dist < Q.mrange2 then
+					if Dist > Q.range2 then 
+						Pos = h + (Pos - h):Normalized()*Q.range
+					end 
+					SetMovement(false)
+					Control.CastSpell(HK_Q, Pos)
+					DelayAction(function() SetMovement(true) end, 0.28)
+				elseif Dist < 0.95*Q.mrange2 then 
+					if Dist > Q.range2 then 
+						Pos = h + (Pos - h):Normalized()*Q.range
+					end 
+					SetMovement(false)
+					Control.CastSpell(HK_Q, Pos)
+					DelayAction(function() SetMovement(true) end, 0.28)
+				end
+			end
+		end
+		local redemption = GetInventorySlotItem(3107) or GetInventorySlotItem(3382)
+		if TRS.Items.Red.RedKS:Value() and redemption and Game.IsChatOpen() == false and myHero.pos:DistanceTo(target.pos) < 5500 then
+			if GetDistance(myHero.pos, target.pos) then
+			local RedDamage = target.maxHealth/10
+			if RedDamage >= target.health then
+				local Rwidth2 = 525 * 525
+				local Rspeed = 20
+				local Rdelay = 2.3
+				local lista = HeroesAround(myHero.pos,30250000,TEAM_ENEMY)
+				if Pos then
+					if OnScreen(target) and target.pos:To2D().onScreen then
+						SetMovement(false)
+						Control.CastSpell(keybindings[redemption],Pos)
+						DelayAction(function() SetMovement(true) end, 0.28)
+					else
+						SetMovement(false)
+						Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
+						Control.KeyDown(keybindings[redemption])
+						Control.KeyUp(keybindings[redemption])
+						DelayAction(function() SetMovement(true) end, 0.28)
+					end
+				end
+			end
+			end
+		end
 	end
-	if TRS.Q.Qks:Value() and Ready(_Q) then
-		local target = GetTarget(1035)
-		if not target then return end
-    	local Qdamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap))
-		if 	Qdamage > (target.health + target.shieldAD + target.hpRegen*1.5) then
-		local target = GetTarget(1035)		
-		local bR = target.boundingRadius
-		local D = GetDistanceSqr(target.pos, myHero.pos)
-		local F = IsFacing(target)		
-		local list = HeroesAround(myHero.pos,Q.range2,TEAM_ENEMY)
-		local Pos = GetBestCircularCastPos(Q.width2,list,Q.speed,Q.delay,target)
-		local Dist = GetDistanceSqr(Pos, h)
-    	if F and Dist - bR * bR < Q.range2 then 
-    		Control.CastSpell(HK_Q, Pos)
-    	elseif Dist - bR * bR < 0.95*Q.range2 then 
-    		Control.CastSpell(HK_Q, Pos)
-    	end
-		return end
-    end
 end
-
+end
 
 function Soraka:Items()
 	if TRS.Items.Red.ONRed:Value() == false then return end
 	local redemption = GetInventorySlotItem(3107) or GetInventorySlotItem(3382)
-	if redemption then	
-	local Rwidth2 = myHero:GetSpellData(redemption).width * myHero:GetSpellData(redemption).width
-	local Rspeed = myHero:GetSpellData(redemption).speed
-	local Rdelay = myHero:GetSpellData(redemption).delay
-	if (myHero.health/myHero.maxHealth <= TRS.Items.Red.myHealth:Value() / 100) then
-			local list = HeroesAround(myHero.pos,1000000,myHero.team)
-			local Pos = GetBestCircularCastPos(Rwidth2,list,Rspeed,Rdelay,myHero)
-				Control.CastSpell(keybindings[redemption],Pos)
-	end
-	local target = GetTarget(5500)
-	if target then
-		if (target.health/target.maxHealth <= 10/100) then
-		local lista = HeroesAround(myHero.pos,1000000,TEAM_ENEMY)
-		local Pos = GetBestCircularCastPos(Rwidth2,lista,Rspeed,Rdelay,target)
+	if redemption --[[and Ready(redemption)]] then
+	local Rwidth2 = 525 * 525
+	local Rspeed = 20
+	local Rdelay = 0.1
+	if TRS.Items.Red.RedMe:Value() and (myHero.health/myHero.maxHealth <= TRS.Items.Red.myHealth:Value() / 100) and not myHero.dead then
+		local list = HeroesAround(myHero.pos,1000000,myHero.team)
+		local Pos = GetBestCircularCastPos(Rwidth2,list,Rspeed,Rdelay,myHero)
+			SetMovement(false)
 			Control.CastSpell(keybindings[redemption],Pos)
-		end
-		end
-	for i,ally in pairs(GetAllyHeroes()) do
-		if not ally.isMe then
-			if(ally.health/ally.maxHealth <= TRS.ULT.heroHP[ally.networkID]:Value() + 20 / 100) then
-				local listo = HeroesAround(myHero.pos,1000000,myHero.team)
-				local Pos = GetBestCircularCastPos(Rwidth2,listo,Rspeed,Rdelay,ally)
-				Control.CastSpell(keybindings[redemption],Pos)
+			DelayAction(function() SetMovement(true) end, 0.3)
+	end
+	
+	local target = GetTarget(5500)
+	if target and not target.dead then
+		if TRS.Items.Red.RedEnemy:Value() and (target.health/target.maxHealth <= TRS.Items.Red.enemyHealth:Value() / 100) then
+			local lista = HeroesAround(myHero.pos,30250000,TEAM_ENEMY)
+			local Pos, Count = GetBestCircularCastPos(Rwidth2,lista,Rspeed,Rdelay,target)
+			if Pos and Count >= TRS.Items.Red.xEne:Value() then
+				if OnScreen(target) and target.pos:To2D().onScreen then
+					SetMovement(false)
+					Control.CastSpell(keybindings[redemption],Pos)
+					DelayAction(function() SetMovement(true) end, 0.3)
+				else
+					SetMovement(false)
+					Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
+					Control.KeyDown(keybindings[redemption])
+					Control.KeyUp(keybindings[redemption])
+					DelayAction(function() SetMovement(true) end, 0.5)
+				end
 			end
 		end
+	end
+	for i,ally in pairs(GetAllyHeroes()) do
+	if not ally.isMe and not ally.dead then
+		if TRS.Items.Red.RedAlly:Value() and (ally.health/ally.maxHealth <= TRS.Items.Red.allyHealth:Value() / 100) then
+		local listo = HeroesAround(myHero.pos,30250000,myHero.team)
+		local Pos = GetBestCircularCastPos(Rwidth2,listo,Rspeed,Rdelay,ally)
+			if OnScreen(ally) and ally.pos:To2D().onScreen then
+				SetMovement(false)
+				Control.CastSpell(keybindings[redemption],Pos)
+				DelayAction(function() SetMovement(true) end, 0.3)
+			else
+			SetMovement(false)
+			Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
+			Control.KeyDown(keybindings[redemption])
+			Control.KeyUp(keybindings[redemption])
+			DelayAction(function() SetMovement(true) end, 0.5)
+			end
+		end
+	end
 	end
 	end
 end
 
 function Soraka:Draw()
 	if myHero.dead then return end
-	if TRS.Drawings.Q:Value() then Draw.Circle(myHero.pos, 800, TRS.Drawings.Width:Value(), TRS.Drawings.Color:Value())
+	if TRS.Drawings.Q:Value() and Ready(_Q) then
+		Draw.Circle(myHero.pos, 800, 2, TRS.Drawings.qColor:Value())
 	end
-	if TRS.Drawings.E:Value() then Draw.Circle(myHero.pos, 925, TRS.Drawings.Width:Value(), TRS.Drawings.Color:Value())	
-	end	
+	if TRS.Drawings.E:Value() and Ready(_E) then
+		Draw.Circle(myHero.pos, 925, 2, TRS.Drawings.eColor:Value())	
+	end
+	if TRS.Drawings.Red:Value() and GetInventorySlotItem(3107) or GetInventorySlotItem(3382) then
+		Draw.CircleMinimap(myHero.pos, 5500, 2, TRS.Drawings.rColor:Value())
+	end
+	if TRS.Drawings.W:Value() and Ready(_W) then
+		Draw.Circle(myHero.pos, 550, 2, TRS.Drawings.wColor:Value())
+	end
 end
     
-Callback.Add("Load", function()
-	if not _G.Prediction_Loaded then return end
-	if _G[myHero.charName] then
-		_G[myHero.charName]()
-		print("TRS "..ScriptVersion..": "..myHero.charName.."  Loaded")
-	else print ("TRS doens't support "..myHero.charName.." shutting down...") return
-	end
-end)
+function OnLoad() Soraka() end
