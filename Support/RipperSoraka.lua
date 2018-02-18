@@ -10,7 +10,7 @@ local acos = math.acos
 local insert = table.insert
 local TEAM_JUNGLE = 300
 local TEAM_ENEMY = 300 - myHero.team
-local ScriptVersion = "v2.1"
+local ScriptVersion = "v2.2"
 -- engine --
 local function GetMode()
 	if _G.EOWLoaded then
@@ -444,6 +444,7 @@ function Soraka:LoadMenu()
 	--Q
 	TRS:MenuElement({type = MENU, id = "Q", name = "[Q] settings", leftIcon = Q.icon})
 	TRS.Q:MenuElement({id = "Qcombo", name = "Use in Combo", value = true})
+	TRS.Q:MenuElement({id = "Qxt", name = "Extend Range", value = 150, min = 0, max = 235})
 	TRS.Q:MenuElement({type = SPACE})
 	TRS.Q:MenuElement({id = "Qclear", name = "Use in Clear", value = true})
 	TRS.Q:MenuElement({id = "Qminions", name = "Minimum minions to hit", value = 3, min = 1, max = 7})
@@ -589,7 +590,8 @@ function Soraka:Combo()
 		local h = myHero.pos
 		local bR = target.boundingRadius
 		local F = IsFacing(target)
-		local list = HeroesAround(h,Q.mrange2,TEAM_ENEMY)
+		local Qmrange2 = Q.range2 + (TRS.Q.Qxt:Value() * TRS.Q.Qxt:Value())
+		local list = HeroesAround(h,Qmrange2,TEAM_ENEMY)
 		local Pos = GetBestCircularCastPos(Q.width2,list,Q.speed,Q.delay,target)
 		local Dist = GetDistanceSqr(Pos, h) - bR * bR 
     	if F and Dist < Q.mrange2 then
@@ -882,14 +884,14 @@ function Soraka:Killsteal()
 					end 
 					SetMovement(false)
 					Control.CastSpell(HK_Q, Pos)
-					DelayAction(function() SetMovement(true) end, 0.28)
+					DelayAction(LeftClick,100/1000,{castSpell.mouse})
 				elseif Dist < 0.95*Q.mrange2 then 
 					if Dist > Q.range2 then 
 						Pos = h + (Pos - h):Normalized()*Q.range
 					end 
 					SetMovement(false)
 					Control.CastSpell(HK_Q, Pos)
-					DelayAction(function() SetMovement(true) end, 0.28)
+					DelayAction(LeftClick,100/1000,{castSpell.mouse})
 				end
 			end
 		end
@@ -906,13 +908,13 @@ function Soraka:Killsteal()
 					if OnScreen(target) and target.pos:To2D().onScreen then
 						SetMovement(false)
 						Control.CastSpell(keybindings[redemption],Pos)
-						DelayAction(function() SetMovement(true) end, 0.28)
+						DelayAction(LeftClick,100/1000,{castSpell.mouse})
 					else
 						SetMovement(false)
 						Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
 						Control.KeyDown(keybindings[redemption])
 						Control.KeyUp(keybindings[redemption])
-						DelayAction(function() SetMovement(true) end, 0.28)
+						DelayAction(LeftClick,100/1000,{castSpell.mouse})
 					end
 				end
 			end
@@ -922,19 +924,34 @@ function Soraka:Killsteal()
 end
 end
 
+function EnableMovement()
+	SetMovement(true)
+end
+
+function ReturnCursor(pos)
+	Control.SetCursorPos(pos)
+	DelayAction(EnableMovement,0.1)
+end
+
+function LeftClick(pos)
+	Control.mouse_event(MOUSEEVENTF_LEFTDOWN)
+	Control.mouse_event(MOUSEEVENTF_LEFTUP)
+	DelayAction(ReturnCursor,0.05,{pos})
+end
+
 function Soraka:Items()
 	if TRS.Items.Red.ONRed:Value() == false then return end
 	local redemption = GetInventorySlotItem(3107) or GetInventorySlotItem(3382)
 	if redemption --[[and Ready(redemption)]] then
 	local Rwidth2 = 525 * 525
 	local Rspeed = 20
-	local Rdelay = 0.1
+	local Rdelay = 0.25
 	if TRS.Items.Red.RedMe:Value() and (myHero.health/myHero.maxHealth <= TRS.Items.Red.myHealth:Value() / 100) and not myHero.dead then
 		local list = HeroesAround(myHero.pos,1000000,myHero.team)
 		local Pos = GetBestCircularCastPos(Rwidth2,list,Rspeed,Rdelay,myHero)
 			SetMovement(false)
 			Control.CastSpell(keybindings[redemption],Pos)
-			DelayAction(function() SetMovement(true) end, 0.3)
+			DelayAction(LeftClick,100/1000,{castSpell.mouse})
 	end
 	
 	local target = GetTarget(5500)
@@ -943,16 +960,16 @@ function Soraka:Items()
 			local lista = HeroesAround(myHero.pos,30250000,TEAM_ENEMY)
 			local Pos, Count = GetBestCircularCastPos(Rwidth2,lista,Rspeed,Rdelay,target)
 			if Pos and Count >= TRS.Items.Red.xEne:Value() then
-				if OnScreen(target) and target.pos:To2D().onScreen then
+				if Pos:To2D().onScreen then
 					SetMovement(false)
 					Control.CastSpell(keybindings[redemption],Pos)
-					DelayAction(function() SetMovement(true) end, 0.3)
+					DelayAction(LeftClick,100/1000,{castSpell.mouse})
 				else
 					SetMovement(false)
 					Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
 					Control.KeyDown(keybindings[redemption])
 					Control.KeyUp(keybindings[redemption])
-					DelayAction(function() SetMovement(true) end, 0.5)
+					DelayAction(LeftClick,100/1000,{castSpell.mouse})
 				end
 			end
 		end
@@ -962,16 +979,16 @@ function Soraka:Items()
 		if TRS.Items.Red.RedAlly:Value() and (ally.health/ally.maxHealth <= TRS.Items.Red.allyHealth:Value() / 100) then
 		local listo = HeroesAround(myHero.pos,30250000,myHero.team)
 		local Pos = GetBestCircularCastPos(Rwidth2,listo,Rspeed,Rdelay,ally)
-			if OnScreen(ally) and ally.pos:To2D().onScreen then
+			if Pos:To2D().onScreen then
 				SetMovement(false)
 				Control.CastSpell(keybindings[redemption],Pos)
-				DelayAction(function() SetMovement(true) end, 0.3)
+				DelayAction(LeftClick,100/1000,{castSpell.mouse})
 			else
 			SetMovement(false)
 			Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
 			Control.KeyDown(keybindings[redemption])
 			Control.KeyUp(keybindings[redemption])
-			DelayAction(function() SetMovement(true) end, 0.5)
+			DelayAction(LeftClick,100/1000,{castSpell.mouse})
 			end
 		end
 	end
