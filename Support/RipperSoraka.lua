@@ -871,8 +871,7 @@ function Soraka:Killsteal()
 		end
 		if TRS.Q.Qks:Value() and Ready(_Q) and myHero.dead == false and Game.IsChatOpen() == false then
 			local Qdamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap))
-			if 	Qdamage > (target.health + target.shieldAD + target.hpRegen*1.5) then
-				local target = GetTarget(1035)		
+			if 	Qdamage > (target.health + target.shieldAD + target.hpRegen*1.5) then	
 				local bR = target.boundingRadius
 				local F = IsFacing(target)		
 				local list = HeroesAround(myHero.pos,Q.range2,TEAM_ENEMY)
