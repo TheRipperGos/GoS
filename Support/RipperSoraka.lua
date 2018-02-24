@@ -910,12 +910,12 @@ function Soraka:Killsteal()
 						SetMovement(false)
 						Control.CastSpell(keybindings[redemption],Pos)
 						DelayAction(LeftClick,100/1000,{castSpell.mouse})
-					else
+					--[[else
 						SetMovement(false)
 						Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
 						Control.KeyDown(keybindings[redemption])
 						Control.KeyUp(keybindings[redemption])
-						DelayAction(LeftClick,100/1000,{castSpell.mouse})
+						DelayAction(LeftClick,100/1000,{castSpell.mouse})]]
 					end
 				end
 			end
