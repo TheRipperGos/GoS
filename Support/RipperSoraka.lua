@@ -10,7 +10,7 @@ local acos = math.acos
 local insert = table.insert
 local TEAM_JUNGLE = 300
 local TEAM_ENEMY = 300 - myHero.team
-local ScriptVersion = "v2.2"
+local ScriptVersion = "v2.3"
 -- engine --
 local function GetMode()
 	if _G.EOWLoaded then
@@ -535,6 +535,7 @@ function Soraka:LoadMenu()
 end
 
 function Soraka:Tick()
+	if ExtLibEvade and ExtLibEvade.Evading then return end
 	self:Killsteal()
 	if myHero.dead == false and Game.IsChatOpen() == false and not HasBuff(myHero,"recall") then
 	self:AutoR()
@@ -844,7 +845,7 @@ function Soraka:Killsteal()
 	for i = 1, Game.HeroCount() do
 	local target = Game.Hero(i)
 	if target and target.isEnemy and not target.dead then
-		if TRS.E.Eks:Value() and Ready(_E) and myHero.dead == false and Game.IsChatOpen() == false then
+		if TRS.E.Eks:Value() and Ready(_E) and myHero.dead == false and Game.IsChatOpen() == false and myHero.pos:DistanceTo(target.pos) < E.range  then
 			local Edamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_E).level + 0.4 * myHero.ap))
 			if Edamage > (target.health + target.shieldAD + target.hpRegen*1.5) then
 				local bR = target.boundingRadius
@@ -869,9 +870,10 @@ function Soraka:Killsteal()
 			end
 			end
 		end
-		if TRS.Q.Qks:Value() and Ready(_Q) and myHero.dead == false and Game.IsChatOpen() == false then
+		if TRS.Q.Qks:Value() and Ready(_Q) and myHero.dead == false and Game.IsChatOpen() == false and myHero.pos:DistanceTo(target.pos) < Q.range then
 			local Qdamage = CalcMagicalDamage(myHero, target, (30 + 40 * myHero:GetSpellData(_Q).level + 0.35 * myHero.ap))
-			if 	Qdamage > (target.health + target.shieldAD + target.hpRegen*1.5) then	
+			if 	Qdamage > (target.health + target.shieldAD + target.hpRegen*1.5) then
+				local target = GetTarget(1035)		
 				local bR = target.boundingRadius
 				local F = IsFacing(target)		
 				local list = HeroesAround(myHero.pos,Q.range2,TEAM_ENEMY)
@@ -963,12 +965,12 @@ function Soraka:Items()
 					SetMovement(false)
 					Control.CastSpell(keybindings[redemption],Pos)
 					DelayAction(LeftClick,100/1000,{castSpell.mouse})
-				else
+				--[[else
 					SetMovement(false)
 					Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
 					Control.KeyDown(keybindings[redemption])
 					Control.KeyUp(keybindings[redemption])
-					DelayAction(LeftClick,100/1000,{castSpell.mouse})
+					DelayAction(LeftClick,100/1000,{castSpell.mouse})]]
 				end
 			end
 		end
@@ -982,12 +984,12 @@ function Soraka:Items()
 				SetMovement(false)
 				Control.CastSpell(keybindings[redemption],Pos)
 				DelayAction(LeftClick,100/1000,{castSpell.mouse})
-			else
+			--[[else
 			SetMovement(false)
 			Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
 			Control.KeyDown(keybindings[redemption])
 			Control.KeyUp(keybindings[redemption])
-			DelayAction(LeftClick,100/1000,{castSpell.mouse})
+			DelayAction(LeftClick,100/1000,{castSpell.mouse})]]
 			end
 		end
 	end
