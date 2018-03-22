@@ -885,14 +885,14 @@ function Soraka:Killsteal()
 					end 
 					SetMovement(false)
 					Control.CastSpell(HK_Q, Pos)
-					DelayAction(LeftClick,100/1000,{castSpell.mouse})
+					DelayAction(LeftClick,100/1000,{mousePos})
 				elseif Dist < 0.95*Q.mrange2 then 
 					if Dist > Q.range2 then 
 						Pos = h + (Pos - h):Normalized()*Q.range
 					end 
 					SetMovement(false)
 					Control.CastSpell(HK_Q, Pos)
-					DelayAction(LeftClick,100/1000,{castSpell.mouse})
+					DelayAction(LeftClick,100/1000,{mousePos})
 				end
 			end
 		end
@@ -909,7 +909,7 @@ function Soraka:Killsteal()
 					if OnScreen(target) and target.pos:To2D().onScreen then
 						SetMovement(false)
 						Control.CastSpell(keybindings[redemption],Pos)
-						DelayAction(LeftClick,100/1000,{castSpell.mouse})
+						DelayAction(LeftClick,100/1000,{mousePos})
 					--[[else
 						SetMovement(false)
 						Control.SetCursorPos(Pos:ToMM().x,Pos:ToMM().y)
